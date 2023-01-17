@@ -1,0 +1,92 @@
+<%@ jet
+	imports="
+	java.util.ArrayList
+	java.util.HashMap
+	java.util.List
+	java.util.Map
+	
+	org.talend.core.model.metadata.IMetadataColumn
+	org.talend.core.model.metadata.IMetadataTable
+	org.talend.core.model.metadata.types.JavaType
+	org.talend.core.model.metadata.types.JavaTypesManager
+	org.talend.core.model.process.ElementParameterParser
+	org.talend.core.model.process.IConnection
+	org.talend.core.model.process.IConnectionCategory
+	org.talend.core.model.process.INode
+	org.talend.core.model.utils.NodeUtil
+	org.talend.designer.codegen.config.CodeGeneratorArgument
+	"
+%>
+<%
+	CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+	INode node = (INode)codeGenArgument.getArgument();
+	String cid = node.getUniqueName();
+	IConnection conn = null;
+	List<? extends IConnection> outConns = NodeUtil.getOutgoingConnections(node, IConnectionCategory.DATA);
+	if (outConns.size() > 0) {
+		conn = outConns.get(0);
+	}
+	List<IMetadataColumn> listColumns = new ArrayList<IMetadataColumn>(); // dummy
+	List<IMetadataTable> metadatas = node.getMetadataList();
+	if (metadatas != null && metadatas.size() > 0) {
+    	IMetadataTable metadata = metadatas.get(0);
+    	if (metadata != null) {
+    		listColumns = metadata.getListColumns();
+		}
+	}	
+    String connection = ElementParameterParser.getValue(node, "__CONNECTION__");
+    String table = ElementParameterParser.getValue(node, "__TABLE__");
+    String filter = ElementParameterParser.getValue(node, "__FILTER__");
+	if (filter == null || filter.trim().isEmpty()) {
+		filter = "null";
+	}
+    String startRow = ElementParameterParser.getValue(node, "__START_ROW__");
+	if (startRow == null || startRow.trim().isEmpty()) {
+		startRow = "null";
+	}
+    String maxRowCount = ElementParameterParser.getValue(node, "__MAX_ROW_COUNT__");
+	if (maxRowCount == null || maxRowCount.trim().isEmpty()) {
+		maxRowCount = "null";
+	}
+%>
+    de.jlo.talendcomp.sap.Destination dest_<%=cid%> = (de.jlo.talendcomp.sap.Destination) globalMap.get("conn_<%=connection%>");
+    if (dest_<%=cid%> == null) {
+    	throw new Exception("No Destination available from referenced component: <%=connection%>");
+    }
+	de.jlo.talendcomp.sap.TableInput <%=cid%> = dest_<%=cid%>.createTableInput();
+	<%=cid%>.setTableName(<%=table%>);
+<%	for (int i = 0; i < listColumns.size(); i++) {
+		IMetadataColumn mc = listColumns.get(i); %>
+	<%=cid%>.addField("<%=mc.getOriginalDbColumnName()%>");
+<%	} %>
+	<%=cid%>.setFilter(<%=filter%>);
+	<%=cid%>.setRowsToSkip(<%=startRow%>);
+	<%=cid%>.setMaxRows(<%=maxRowCount%>);
+	<%=cid%>.execute();
+	globalMap.put("<%=cid%>_QUERY_DESC", <%=cid%>.getFunctionDescription());
+	int countLines_<%=cid%> = 0;
+	while (<%=cid%>.next()) {
+	    // next row from results
+		java.util.List<String> dataset_<%=cid%> = <%=cid%>.getCurrentRow();
+	    countLines_<%=cid%>++;
+<%  if (conn != null) { %>
+		// create a new row, thats avoid the need of setting attributes to null
+		<%=conn.getName()%> = new <%=conn.getName()%>Struct();
+<%  } %>
+<%	int index = 0;
+    if (listColumns != null && conn != null) {
+        for (IMetadataColumn col : listColumns) {
+           String javaClassName = JavaTypesManager.getJavaTypeFromId(col.getTalendType()).getNullableClass().getName(); %>
+		// fill schema field <%=col.getLabel()%>
+		String <%=cid%>_value_<%=index%> = dataset_<%=cid%>.get(<%=index%>);
+        try {
+			<%=conn.getName()%>.<%=col.getLabel()%> = (<%=javaClassName%>) de.jlo.talendcomp.sap.TypeUtil.convertToDatatype(
+					<%=cid%>_value_<%=index%>, 
+					"<%=col.getTalendType().substring(3)%>", 
+					<%=((col.getPattern() != null && col.getPattern().isEmpty() == false) ? col.getPattern() : null)%>);
+		} catch (Exception e) {
+			throw new Exception("Convert field: <%=conn.getName()%>.<%=col.getLabel()%> value=[" + <%=cid%>_value_<%=index%> + "] countLines=" + countLines_<%=cid%> + " failed:" + e.getMessage(), e);		
+		}
+<%      index++; %>
+<%      } // for (IMetadata %>
+<%  } // if (listColumns %>
