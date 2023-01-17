@@ -67,6 +67,7 @@
 	int countLines_<%=cid%> = 0;
 	while (<%=cid%>.next()) {
 	    // next row from results
+	    globalMap.put("<%=cid%>_RAW_DATA", <%=cid%>.getCurrentRawDataEscaped());
 		java.util.List<String> dataset_<%=cid%> = <%=cid%>.getCurrentRow();
 	    countLines_<%=cid%>++;
 <%  if (conn != null) { %>

@@ -221,6 +221,7 @@ public class TableInputImpl implements TableInput {
 		return currentRowIndex;
 	}
 	
+	@Override
 	public String getCurrentRawDataEscaped() {
 		return StringEscapeUtils.escapeJava(currentRawData);
 	}
@@ -229,6 +230,7 @@ public class TableInputImpl implements TableInput {
 		return filter;
 	}
 
+	@Override
 	public void setFilter(String whereCondition) {
 		this.filter = whereCondition;
 	}
