@@ -23,6 +23,7 @@
     String serverType = ElementParameterParser.getValue(node,"__SERVERTYPE__");
     String systemId = ElementParameterParser.getValue(node,"__SYSTEMID__");
     String groupName = ElementParameterParser.getValue(node,"__GROUPNAME__");
+    String jarFilePath = ElementParameterParser.getValue(node,"__SAPJCO3_JAR_FILE__");
 %>
     de.jlo.talendcomp.sap.ConnectionProperties properties_<%=cid%> = null;
 <%  if ("APPLICATIONSERVER".equalsIgnoreCase(serverType)) { %>
@@ -43,6 +44,7 @@
 			.setUser(<%=userid%>)
 			.setPassword(<%=password%>);
 <%  } %>
+	de.jlo.talendcomp.sap.DriverManager.loadSapJco3Jar(<%=jarFilePath%>);
 	de.jlo.talendcomp.sap.Driver driver_<%=cid%> = de.jlo.talendcomp.sap.DriverManager.getInstance().getDriver();
 	de.jlo.talendcomp.sap.Destination dest_<%=cid%> = driver_<%=cid%>.createDestination(properties_<%=cid%>);
 	globalMap.put("conn_<%=cid%>", dest_<%=cid%>);

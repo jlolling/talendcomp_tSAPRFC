@@ -2,22 +2,16 @@ package de.jlo.talendcomp.sap;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLClassLoader;
+
+import de.jlo.talendcomp.loadjaragent.JarLoader;
 
 public class DriverManager {
 		
 	private static DriverManager INSTANCE = null;
-	private static JarClassLoader jarClassLoader = null;
 	private static final Object lock = new Object();
 	private static boolean sapjcoJarLoaded = false;
 	
 	private DriverManager() {
-		synchronized(lock) {
-			if (jarClassLoader == null) {
-				jarClassLoader = new JarClassLoader(new URL[0], this.getClass().getClassLoader());
-			}
-		}
 	}
 	
 	public static DriverManager getInstance() {
@@ -32,7 +26,7 @@ public class DriverManager {
 	 * @param path to the jar file
 	 * @throws Exception if something went wrong
 	 */
-	public void loadSapJco3Jar(String path) throws Exception {
+	public static void loadSapJco3Jar(String path) throws Exception {
 		synchronized(lock) {
 			if (sapjcoJarLoaded == false) {
 				if (path == null || path.trim().isEmpty()) {
@@ -45,23 +39,10 @@ public class DriverManager {
 				if (jarFile.exists() == false) {
 					throw new IOException("SAP JCo jar file: " + jarFile.getAbsolutePath() + " does not exist");
 				}
-				//loadLibrary(jarFile);
-				jarClassLoader.addJarFile(jarFile);
+				JarLoader.addJarToClassPath(jarFile);
 				sapjcoJarLoaded = true;
 			}
 		}
-	}
-	
-	public static void loadLibrary(File file) throws Exception {
-	    try {
-	    	java.net.URL url = file.toURI().toURL();
-	        URLClassLoader jarLoader = new URLClassLoader(new URL[0], Thread.currentThread().getContextClassLoader());
-	        java.lang.reflect.Method method = java.net.URLClassLoader.class.getDeclaredMethod("addURL", java.net.URL.class);
-	        method.setAccessible(true);
-	        method.invoke(jarLoader, url);
-	    } catch (Exception ex) {
-	        throw new Exception("Cannot load library from jar file '" + file.getAbsolutePath() + "'. Reason: " + ex.getMessage(), ex);
-	    }
 	}
 	
 	/**
