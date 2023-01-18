@@ -45,7 +45,7 @@ public final class TypeUtil {
 			numberformatMap.put(localeStr, nf);
 		}
 		return nf;
-	} 
+	}
 	
 	public static Object convertToDatatype(String value, String dataType, String options) throws Exception {
 		if (value != null && value.trim().isEmpty() == false) {

@@ -176,7 +176,14 @@ public class TableInputImpl implements TableInput {
 		}
 	}
 	
-	private void fillCurrentRow() {
+	public void fillCurrentRow() {
+		// the last field will be ignored if empty.
+		// to prevent that, add an space at the end if the last char is the delimiter
+		// the space value will be ignored later on
+		// the space will be later converted back to null in the TypeUtil
+		if (currentRawData.endsWith(tableResultFieldDelimiter)) {
+			currentRawData = currentRawData + " ";
+		}
 		String[] array = currentRawData.split(tableResultFieldDelimiter);
 		currentRow = new ArrayList<>();
 		for (String v : array) {
@@ -188,7 +195,7 @@ public class TableInputImpl implements TableInput {
 			currentRow.add(v);
 		}
 		if (currentRow.size() != listFields.size()) {
-			throw new IllegalStateException("The received field count: " + currentRow.size() + " does not fit to the expected field count: " + listFields.size() + " in the current received line: " + getCurrentRawDataEscaped());
+			throw new IllegalStateException("The received field count: " + currentRow.size() + " does not fit to the expected field count: " + listFields.size() + " in the current received line: <" + getCurrentRawDataEscaped() + "> , Query:\n" + getFunctionDescription());
 		}
 	}
 
