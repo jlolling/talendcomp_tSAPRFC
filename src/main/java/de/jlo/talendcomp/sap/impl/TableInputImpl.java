@@ -182,12 +182,13 @@ public class TableInputImpl implements TableInput {
 		for (String v : array) {
 			if (v == null) {
 				v = "";
+			} else {
+				v = v.trim();
 			}
-			v = v.trim();
 			currentRow.add(v);
 		}
 		if (currentRow.size() != listFields.size()) {
-			throw new IllegalStateException("The received field count: " + currentRow.size() + " does not fit to the expected field count: " + listFields.size() + " in the current received line: " + currentRawData);
+			throw new IllegalStateException("The received field count: " + currentRow.size() + " does not fit to the expected field count: " + listFields.size() + " in the current received line: " + getCurrentRawDataEscaped());
 		}
 	}
 
