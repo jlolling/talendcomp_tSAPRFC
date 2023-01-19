@@ -47,6 +47,32 @@ public final class TypeUtil {
 		return nf;
 	}
 	
+	public static boolean isSupportedDataType(String dataType) {
+		if ("String".equalsIgnoreCase(dataType)) {
+			return true;
+		} else if ("BigDecimal".equalsIgnoreCase(dataType)) {
+			return true;
+		} else if ("Boolean".equalsIgnoreCase(dataType)) {
+			return true;
+		} else if ("Date".equalsIgnoreCase(dataType)) {
+			return true;
+		} else if ("Double".equalsIgnoreCase(dataType)) {
+			return true;
+		} else if ("Float".equalsIgnoreCase(dataType)) {
+			return true;
+		} else if ("Int".equalsIgnoreCase(dataType) || "Integer".equalsIgnoreCase(dataType)) {
+			return true;
+		} else if ("Long".equalsIgnoreCase(dataType)) {
+			return true;
+		} else if ("Short".equalsIgnoreCase(dataType)) {
+			return true;
+		} else if ("Timestamp".equalsIgnoreCase(dataType)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
 	public static Object convertToDatatype(String value, String dataType, String options) throws Exception {
 		if (value != null && value.trim().isEmpty() == false) {
 			value = value.trim();

@@ -48,6 +48,7 @@
 	if (maxRowCount == null || maxRowCount.trim().isEmpty()) {
 		maxRowCount = "null";
 	}
+	boolean ignoreUnsupportedTypes = "true".equals(ElementParameterParser.getValue(node, "__IGNORE_UNSUPPORTED_DATATYPES__"));
 %>
     de.jlo.talendcomp.sap.Destination dest_<%=cid%> = (de.jlo.talendcomp.sap.Destination) globalMap.get("conn_<%=connection%>");
     if (dest_<%=cid%> == null) {
@@ -77,16 +78,27 @@
 <%	int index = 0;
     if (listColumns != null && conn != null) {
         for (IMetadataColumn col : listColumns) {
-           String javaClassName = JavaTypesManager.getJavaTypeFromId(col.getTalendType()).getNullableClass().getName(); %>
+           String javaClassName = JavaTypesManager.getJavaTypeFromId(col.getTalendType()).getNullableClass().getName();
+           String simpleDataType = col.getTalendType().substring(3);
+           if (javaClassName.startsWith("[")) { // found an array
+               javaClassName = simpleDataType;
+           }
+%>
 		// fill schema field <%=col.getLabel()%>
-		String <%=cid%>_value_<%=index%> = dataset_<%=cid%>.get(<%=index%>);
-        try {
-			<%=conn.getName()%>.<%=col.getLabel()%> = (<%=javaClassName%>) de.jlo.talendcomp.sap.TypeUtil.convertToDatatype(
+		if (de.jlo.talendcomp.sap.TypeUtil.isSupportedDataType("<%=simpleDataType%>")) {
+			String <%=cid%>_value_<%=index%> = dataset_<%=cid%>.get(<%=index%>);
+        	try {
+				<%=conn.getName()%>.<%=col.getLabel()%> = (<%=javaClassName%>) de.jlo.talendcomp.sap.TypeUtil.convertToDatatype(
 					<%=cid%>_value_<%=index%>, 
-					"<%=col.getTalendType().substring(3)%>", 
+					"<%=simpleDataType%>", 
 					<%=((col.getPattern() != null && col.getPattern().isEmpty() == false) ? col.getPattern() : null)%>);
-		} catch (Exception e) {
-			throw new Exception("Convert field: <%=conn.getName()%>.<%=col.getLabel()%> value=[" + <%=cid%>_value_<%=index%> + "] countLines=" + countLines_<%=cid%> + " failed:" + e.getMessage(), e);		
+			} catch (Exception e) {
+				throw new Exception("Convert field: <%=conn.getName()%>.<%=col.getLabel()%> value=[" + <%=cid%>_value_<%=index%> + "] countLines=" + countLines_<%=cid%> + " failed:" + e.getMessage(), e);		
+			}
+		} else if (<%=ignoreUnsupportedTypes%>) {
+			// do not fill <%=conn.getName()%>.<%=col.getLabel()%> because data type: <%=simpleDataType%> is not supported
+		} else {
+			throw new Exception("Convert field: <%=conn.getName()%>.<%=col.getLabel()%> failed because data type: <%=simpleDataType%> is not supported");
 		}
 <%      index++; %>
 <%      } // for (IMetadata %>
