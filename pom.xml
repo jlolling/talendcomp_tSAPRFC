@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.jlo.talendcomp</groupId>
 	<artifactId>jlo-talendcomp-saprfc</artifactId>
-	<version>2.0</version>
+	<version>1.4</version>
 	<properties>
 		<encoding>UTF-8</encoding>
 	</properties>
@@ -35,11 +35,6 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-text</artifactId>
 			<version>1.10.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.github.jlolling</groupId>
-			<artifactId>jarloader</artifactId>
-			<version>1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
