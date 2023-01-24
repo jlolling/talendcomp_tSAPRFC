@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.jlo.talendcomp</groupId>
 	<artifactId>jlo-talendcomp-saprfc</artifactId>
-	<version>1.4</version>
+	<version>1.5</version>
 	<properties>
 		<encoding>UTF-8</encoding>
 	</properties>
@@ -18,13 +18,10 @@
 	</repositories>
 	<dependencies>
 		<dependency>
-			<groupId>com.sap.jco</groupId>
-			<artifactId>sapjco</artifactId>
-			<version>3.0.21</version>
-			<scope>system</scope>
-			<!-- eclipse complains here a missing absolute path, but works nevertheless -->
-			<!-- set the path in your maven settings -->
-			<systemPath>${sapjco3Path}</systemPath>
+		  <groupId>com.github.jlolling</groupId>
+		  <artifactId>sapjco3-mock</artifactId>
+		  <version>0.1</version>
+		  <scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -62,8 +59,6 @@
          			<!-- set the path in your maven settings -->
 					<studioUserComponentFolder>${custom_component_folder}</studioUserComponentFolder>
 					<useTalendLibrariesMavenLocation>false</useTalendLibrariesMavenLocation>
-					<keepImports>true</keepImports>
-					<excludeScopes>test,provided</excludeScopes>
 				</configuration>
 				<executions>
 					<execution>
