@@ -40,6 +40,14 @@ public class DriverManager {
 					throw new IOException("SAP JCo jar file: " + jarFile.getAbsolutePath() + " does not exist");
 				}
 				JarLoader.addJarToClassPath(jarFile);
+				String testClass = "com.sap.conn.jco.JCoTable";
+				try {
+					Class.forName(testClass);
+				} catch (ClassNotFoundException e) {
+					throw new Exception("Load jar: " + jarFile.getAbsolutePath() + " into classpath failed. Expected class: " + testClass + " could not be found", e);
+				}
+				
+				System.out.println(JarLoader.getLoadedClasses());
 				sapjcoJarLoaded = true;
 			}
 		}

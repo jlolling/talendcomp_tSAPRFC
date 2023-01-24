@@ -1,17 +1,15 @@
 package de.jlo.talendcomp.sap.impl;
 
 import de.jlo.talendcomp.sap.ConnectionProperties;
-import de.jlo.talendcomp.sap.Destination;
-import de.jlo.talendcomp.sap.Driver;
 
-public class DriverImpl implements Driver {
+public class DriverImpl implements de.jlo.talendcomp.sap.Driver {
 	
 	public DriverImpl() {}
 	
 	private static boolean providerRegistered = false;
 
 	@Override
-	public Destination createDestination(ConnectionProperties connProp) throws Exception {
+	public de.jlo.talendcomp.sap.Destination createDestination(ConnectionProperties connProp) throws Exception {
 		DestinationImpl d = new DestinationImpl(createJCoDestination(connProp));
 		return d;
 	}
