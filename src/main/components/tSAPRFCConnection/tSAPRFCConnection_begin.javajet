@@ -13,7 +13,6 @@
 	INode node = (INode)codeGenArgument.getArgument();
 	String cid = node.getUniqueName();
 
-	String sapjco3FilePath = ElementParameterParser.getValue(node, "__SAPJCO3_JAR_FILE__");
     String client = ElementParameterParser.getValue(node, "__CLIENT__");
     String userid = ElementParameterParser.getValue(node, "__USERID__");
     String password = ElementParameterParser.getValue(node, "__PASSWORD__");
@@ -44,7 +43,6 @@
 			.setUser(<%=userid%>)
 			.setPassword(<%=password%>);
 <%  } %>
-	de.jlo.talendcomp.sap.DriverManager.loadSapJco3Jar(<%=jarFilePath%>);
 	de.jlo.talendcomp.sap.Driver driver_<%=cid%> = de.jlo.talendcomp.sap.DriverManager.getInstance().getDriver();
 	de.jlo.talendcomp.sap.Destination dest_<%=cid%> = driver_<%=cid%>.createDestination(properties_<%=cid%>);
 	globalMap.put("conn_<%=cid%>", dest_<%=cid%>);

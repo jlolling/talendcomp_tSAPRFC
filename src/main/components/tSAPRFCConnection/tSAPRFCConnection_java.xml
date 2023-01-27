@@ -96,6 +96,7 @@
     </ADVANCED_PARAMETERS>
   <CODEGENERATION>
      <IMPORTS>
+		<IMPORT NAME="sapjco-ntintel-3" MODULE="sapjco3.jar" MVN="mvn:org.talend.libraries/com.sap.conn.jco.sapjco/6.0.0"  REQUIRED_IF="true" BundleID="" />
      </IMPORTS>
   </CODEGENERATION>
 
