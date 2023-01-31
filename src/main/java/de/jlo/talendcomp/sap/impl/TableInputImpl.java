@@ -2,6 +2,7 @@ package de.jlo.talendcomp.sap.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import org.apache.commons.text.StringEscapeUtils;
 
@@ -48,6 +49,7 @@ public class TableInputImpl implements TableInput {
 	private Integer rowCount = null;
 	private Integer rowSkip = null;
 	private String functionDescription = null;
+	private String filter72Separator = "\\";
 	
 	/**
 	 * Create an instance if TableInput
@@ -111,12 +113,16 @@ public class TableInputImpl implements TableInput {
 		}
 		JCoParameterList tableParameterList = function.getTableParameterList();
 		// add where condition
-		if (filter != null && filter.trim().isEmpty() == false) {
-			JCoTable tableInputOptions = tableParameterList.getTable("OPTIONS");
-			tableInputOptions.appendRows(1);
-			tableInputOptions.firstRow();
-			tableInputOptions.setValue("TEXT", filter);
-			tableInputOptions.nextRow();
+		if (filter != null) {
+			if (filter.length() > 72) {
+				throw new Exception("Filter expression: <" + filter + "> is longer than 72 chars. The function does not allows filter expressions longer than 72 chars.");
+			} else {
+				JCoTable tableInputOptions = tableParameterList.getTable("OPTIONS");
+				tableInputOptions.appendRows(1);
+				tableInputOptions.firstRow();
+				tableInputOptions.setValue("TEXT", filter);
+				tableInputOptions.nextRow();
+			}
 		}
 
 		// add fields
@@ -240,7 +246,9 @@ public class TableInputImpl implements TableInput {
 
 	@Override
 	public void setFilter(String whereCondition) {
-		this.filter = whereCondition;
+		if (whereCondition != null) {
+			this.filter = whereCondition.trim();
+		}
 	}
 
 	@Override
