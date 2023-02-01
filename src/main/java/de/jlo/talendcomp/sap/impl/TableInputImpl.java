@@ -2,7 +2,6 @@ package de.jlo.talendcomp.sap.impl;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
 
 import org.apache.commons.text.StringEscapeUtils;
 
@@ -18,6 +17,7 @@ import com.sap.conn.jco.JCoTable;
 import com.sap.conn.jco.rt.DefaultTable;
 
 import de.jlo.talendcomp.sap.TableInput;
+import de.jlo.talendcomp.sap.TextSplitter;
 
 /**
  * Copyright 2023 Jan Lolling jan.lolling@gmail.com
@@ -49,7 +49,7 @@ public class TableInputImpl implements TableInput {
 	private Integer rowCount = null;
 	private Integer rowSkip = null;
 	private String functionDescription = null;
-	private String filter72Separator = "\\";
+	private char filterPartSeparator = ';';
 	
 	/**
 	 * Create an instance if TableInput
@@ -113,18 +113,19 @@ public class TableInputImpl implements TableInput {
 		}
 		JCoParameterList tableParameterList = function.getTableParameterList();
 		// add where condition
-		if (filter != null) {
-			if (filter.length() > 72) {
-				throw new Exception("Filter expression: <" + filter + "> is longer than 72 chars. The function does not allows filter expressions longer than 72 chars.");
-			} else {
-				JCoTable tableInputOptions = tableParameterList.getTable("OPTIONS");
-				tableInputOptions.appendRows(1);
-				tableInputOptions.firstRow();
-				tableInputOptions.setValue("TEXT", filter);
+		List<String> filterPartList = TextSplitter.split(filter, filterPartSeparator);
+		if (filterPartList.size() > 0) {
+			JCoTable tableInputOptions = tableParameterList.getTable("OPTIONS");
+			tableInputOptions.appendRows(filterPartList.size());
+			tableInputOptions.firstRow();
+			for (String part : filterPartList) {
+				if (part.length() > 72) {
+					throw new Exception("The filter expression: <" + filter + "> contains a part which is larger than 72 chars. Affected part: <"+ part + ">. Please split the filter with: <" + filterPartSeparator + "> into parts smaller than 72 chars");
+				}
+				tableInputOptions.setValue("TEXT", part);
 				tableInputOptions.nextRow();
 			}
 		}
-
 		// add fields
 		if (listFields.isEmpty()) {
 			throw new Exception("List of expected fields cannot not be empty");

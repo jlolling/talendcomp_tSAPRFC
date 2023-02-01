@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.jlo.talendcomp</groupId>
 	<artifactId>jlo-talendcomp-saprfc</artifactId>
-	<version>1.4</version>
+	<version>1.5</version>
 	<properties>
 		<encoding>UTF-8</encoding>
 	</properties>
@@ -21,10 +21,6 @@
 			<groupId>com.sap.jco</groupId>
 			<artifactId>sapjco</artifactId>
 			<version>3.0.21</version>
-			<scope>system</scope>
-			<!-- eclipse complains here a missing absolute path, but works nevertheless -->
-			<!-- set the path in your maven settings -->
-			<systemPath>${sapjco3Path}</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
