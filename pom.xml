@@ -21,6 +21,10 @@
 			<groupId>com.sap.jco</groupId>
 			<artifactId>sapjco</artifactId>
 			<version>3.0.21</version>
+			<scope>system</scope>
+			<!-- eclipse complains here a missing absolute path, but works nevertheless -->
+			<!-- set the path in your maven settings -->
+			<systemPath>${sapjco3Path}</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -53,7 +57,7 @@
 			<plugin>
 				<groupId>de.cimt.talendcomp</groupId>
 				<artifactId>cimt-talendcomp-maven-plugin</artifactId>
-				<version>3.2</version>
+				<version>3.3</version>
 				<configuration>
          			<!-- set the path in your maven settings -->
 					<studioUserComponentFolder>${custom_component_folder}</studioUserComponentFolder>
