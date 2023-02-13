@@ -26,7 +26,7 @@ public class DriverManager {
 			throw new Exception("Classes from sapjco3.jar not available.", e);
 		}
 		// this is the part we separate the implementation from the interface
-		Driver driver = (Driver) Class.forName("de.jlo.talendcomp.sap.impl.DriverImpl").getDeclaredConstructor().newInstance();
+		Driver driver = (Driver) Class.forName("de.jlo.talendcomp.sap.sapjco.DriverImpl").getDeclaredConstructor().newInstance();
 		return driver;
 	}
 	

@@ -1,4 +1,4 @@
-package de.jlo.talendcomp.sap.impl;
+package de.jlo.talendcomp.sap.sapjco;
 
 import de.jlo.talendcomp.sap.ConnectionProperties;
 import de.jlo.talendcomp.sap.Destination;
