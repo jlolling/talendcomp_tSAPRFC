@@ -56,7 +56,7 @@ public class HttpClient {
 		}
 	}
 	
-	private Reader executeUsingStream(HttpPost request, boolean expectResponse) throws Exception {
+	private Reader execute(HttpPost request, boolean expectResponse) throws Exception {
 		String responseContent = "";
 		currentAttempt = 0;
 		for (currentAttempt = 0; currentAttempt <= maxRetriesInCaseOfErrors; currentAttempt++) {
@@ -94,6 +94,13 @@ public class HttpClient {
         return responseContentReader;
 	}
 
+	public Reader getResponseContentReader() {
+		if (responseContentReader == null) {
+			throw new IllegalStateException("response content reader is null. No query was exeutted before");
+		}
+		return responseContentReader;
+	}
+
 	public Reader post(String urlStr, JsonNode node, boolean expectResponse) throws Exception {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("POST " + urlStr + " body: " + node.toString());
@@ -107,7 +114,7 @@ public class HttpClient {
             request.addHeader("Content-Type", "application/json;charset=UTF-8");
             request.addHeader("Keep-Alive", "timeout=5, max=0");
         }
-        return executeUsingStream(request, expectResponse);
+        return execute(request, expectResponse);
 	}
 
 	private CloseableHttpClient createCloseableClient(String urlStr, String user, String password, int timeout, int socketTimeout) throws Exception {

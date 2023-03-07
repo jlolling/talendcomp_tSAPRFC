@@ -266,8 +266,10 @@ public class TableInputImpl implements TableInput {
 		return tableResultFieldDelimiter;
 	}
 
-	@Override
 	public void setTableResultFieldDelimiter(String tableResultFieldDelimiter) {
+		if (tableResultFieldDelimiter == null || tableResultFieldDelimiter.trim().isEmpty()) {
+			throw new IllegalArgumentException("tableResultFieldDelimiter cannot be null or empty");
+		}
 		this.tableResultFieldDelimiter = tableResultFieldDelimiter;
 	}
 
