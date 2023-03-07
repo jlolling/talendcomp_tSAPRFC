@@ -5,11 +5,21 @@ import de.jlo.talendcomp.sap.Destination;
 import de.jlo.talendcomp.sap.Driver;
 
 public class DriverImpl implements Driver {
-
+	
+	private String serviceBaseUrl = null;
+	
+	public DriverImpl(String serviceBaseUrl) throws Exception {
+		this.serviceBaseUrl = serviceBaseUrl;
+	}
+	
+	private HttpClient createHttpClient() throws Exception {
+		return new HttpClient(serviceBaseUrl, null, null, 100, 100);
+	}
+	
 	@Override
 	public Destination createDestination(ConnectionProperties connProp) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		DestinationImpl destination = new DestinationImpl(createHttpClient());
+		return destination;
 	}
 
 }

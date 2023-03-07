@@ -11,6 +11,12 @@ import de.jlo.talendcomp.sap.TableInput;
  *
  */
 public class DestinationImpl implements Destination {
+	
+	private HttpClient httpClient = null;
+	
+	public DestinationImpl(HttpClient httpClient) {
+		this.httpClient = httpClient;
+	}
 
 	@Override
 	public TableInput createTableInput() {
