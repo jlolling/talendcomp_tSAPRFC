@@ -7,19 +7,43 @@ import de.jlo.talendcomp.sap.Driver;
 public class DriverImpl implements Driver {
 	
 	private String serviceBaseUrl = null;
+	private String httpUser = null;
+	private String httpPassword = null;
 	
-	public DriverImpl(String serviceBaseUrl) throws Exception {
-		this.serviceBaseUrl = serviceBaseUrl;
-	}
+	public DriverImpl() {}
 	
 	private HttpClient createHttpClient() throws Exception {
-		return new HttpClient(serviceBaseUrl, null, null, 100, 100);
+		return new HttpClient(serviceBaseUrl, httpUser, httpPassword, 100, 100);
 	}
 	
 	@Override
 	public Destination createDestination(ConnectionProperties connProp) throws Exception {
 		DestinationImpl destination = new DestinationImpl(createHttpClient(), connProp);
 		return destination;
+	}
+
+	public String getServiceBaseUrl() {
+		return serviceBaseUrl;
+	}
+
+	public void setServiceBaseUrl(String serviceBaseUrl) {
+		this.serviceBaseUrl = serviceBaseUrl;
+	}
+
+	public String getHttpUser() {
+		return httpUser;
+	}
+
+	public void setHttpUser(String httpUser) {
+		this.httpUser = httpUser;
+	}
+
+	public String getHttpPassword() {
+		return httpPassword;
+	}
+
+	public void setHttpPassword(String httpPassword) {
+		this.httpPassword = httpPassword;
 	}
 
 }
