@@ -13,6 +13,7 @@ public class DriverImpl implements Driver {
 	@Override
 	public Destination createDestination(ConnectionProperties connProp) throws Exception {
 		DestinationImpl d = new DestinationImpl(createJCoDestination(connProp));
+		d.ping();
 		return d;
 	}
 
@@ -33,7 +34,6 @@ public class DriverImpl implements Driver {
 		ProxyDestinationDataProvider.getInstance().setConnectionProperties(connProp);
 		// JCoDestinationManager will use the register MyDestinationDataProvider
 		com.sap.conn.jco.JCoDestination dest = com.sap.conn.jco.JCoDestinationManager.getDestination(connProp.getDestinationName());
-		dest.ping();
 		return dest;
 	}
 	

@@ -27,6 +27,9 @@ public class DestinationImpl implements Destination {
 	public DestinationImpl(HttpClient httpClient, ConnectionProperties cp) throws Exception {
 		this.httpClient = httpClient;
 		destinationNode = setupDestinationNode(cp);
+	}
+	
+	public void ping() throws Exception {
 		try {
 			this.httpClient.ping(destinationNode);
 		} catch (Exception e) {

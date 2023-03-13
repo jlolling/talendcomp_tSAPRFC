@@ -31,6 +31,14 @@ public class DestinationImpl implements Destination {
 		this.jcoDestination = jcoDestination;
 	}
 	
+	public void ping() throws Exception {
+		try {
+			this.jcoDestination.ping();
+		} catch (Exception e) {
+			throw new Exception("Connection check (ping) failed: " + e.getMessage(), e);
+		}
+	}
+	
 	@Override
 	public TableInput createTableInput() {
 		TableInputImpl ti = new TableInputImpl(jcoDestination);

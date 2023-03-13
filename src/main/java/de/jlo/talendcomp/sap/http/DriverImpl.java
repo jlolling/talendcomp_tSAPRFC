@@ -13,12 +13,16 @@ public class DriverImpl implements Driver {
 	public DriverImpl() {}
 	
 	private HttpClient createHttpClient() throws Exception {
+		if (serviceBaseUrl == null) {
+			throw new IllegalStateException("serviceBaseUrl not set!");
+		}
 		return new HttpClient(serviceBaseUrl, httpUser, httpPassword, 100, 100);
 	}
 	
 	@Override
 	public Destination createDestination(ConnectionProperties connProp) throws Exception {
 		DestinationImpl destination = new DestinationImpl(createHttpClient(), connProp);
+		destination.ping();
 		return destination;
 	}
 
@@ -27,6 +31,9 @@ public class DriverImpl implements Driver {
 	}
 
 	public void setServiceBaseUrl(String serviceBaseUrl) {
+		if (serviceBaseUrl == null || serviceBaseUrl.trim().isEmpty()) {
+			throw new IllegalStateException("serviceBaseUrl cannot be null or empty!");
+		}
 		this.serviceBaseUrl = serviceBaseUrl;
 	}
 
