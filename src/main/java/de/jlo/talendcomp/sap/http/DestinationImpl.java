@@ -31,7 +31,9 @@ public class DestinationImpl implements Destination {
 	
 	public void ping() throws Exception {
 		try {
-			this.httpClient.ping(destinationNode);
+			ObjectNode requestNode = objectMapper.createObjectNode();
+			requestNode.set("destination", destinationNode);
+			this.httpClient.ping(requestNode);
 		} catch (Exception e) {
 			throw new Exception("Connection check (ping) failed: " + e.getMessage(), e);
 		}

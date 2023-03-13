@@ -46,7 +46,7 @@
 			.setPassword(<%=password%>);
 <%  } %>
 <%	if (useService) { %>
-	de.jlo.talendcomp.sap.Driver driver_<%=cid%> = de.jlo.talendcomp.sap.DriverManager.getInstance().getDriverService(serviceBaseUrl, null, null);
+	de.jlo.talendcomp.sap.Driver driver_<%=cid%> = de.jlo.talendcomp.sap.DriverManager.getInstance().getDriverService(<%=serviceBaseUrl%>, null, null);
 <%  } else { %>
 	de.jlo.talendcomp.sap.Driver driver_<%=cid%> = de.jlo.talendcomp.sap.DriverManager.getInstance().getDriverSAPJCO();
 <%  } %>
