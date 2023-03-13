@@ -18,7 +18,7 @@ public class DriverImpl implements Driver {
 	
 	@Override
 	public Destination createDestination(ConnectionProperties connProp) throws Exception {
-		DestinationImpl destination = new DestinationImpl(createHttpClient());
+		DestinationImpl destination = new DestinationImpl(createHttpClient(), connProp);
 		return destination;
 	}
 

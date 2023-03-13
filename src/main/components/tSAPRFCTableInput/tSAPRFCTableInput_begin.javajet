@@ -63,6 +63,7 @@
 	<%=cid%>.setFilter(<%=filter%>);
 	<%=cid%>.setRowsToSkip(<%=startRow%>);
 	<%=cid%>.setMaxRows(<%=maxRowCount%>);
+	<%=cid%>.prepare();
 	<%=cid%>.execute();
 	globalMap.put("<%=cid%>_QUERY_DESC", <%=cid%>.getFunctionDescription());
 	int countLines_<%=cid%> = 0;

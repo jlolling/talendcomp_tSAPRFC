@@ -3,7 +3,6 @@ package de.jlo.talendcomp.sap.http;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 
@@ -40,11 +39,20 @@ public class HttpClient {
 	private long waitMillisAfterError = 1000l;
 	private CloseableHttpClient closableHttpClient = null;
 	private HttpClientContext context = null;
-	private Reader responseContentReader = null;
+	private BufferedReader responseContentReader = null;
 	private CloseableHttpResponse httpResponse = null;
+	private String baseUrl = null;
+	private Header[] responseHeader = null;
 	
-	public HttpClient(String urlStr, String user, String password, int timeout, int socketTimeout) throws Exception {
-		closableHttpClient = createCloseableClient(urlStr, user, password, timeout, socketTimeout);
+	public HttpClient(String baseUrl, String user, String password, int timeout, int socketTimeout) throws Exception {
+		if (baseUrl == null || baseUrl.trim().isEmpty()) {
+			throw new Exception("baseUrl cannot be null or empty");
+		}
+		if (baseUrl.endsWith("/") == false) {
+			baseUrl = baseUrl + "/";
+		}
+		this.baseUrl = baseUrl;
+		closableHttpClient = createCloseableClient(baseUrl, user, password, timeout, socketTimeout);
 	}
 	
 	private HttpEntity buildEntity(JsonNode node) throws UnsupportedEncodingException {
@@ -56,7 +64,7 @@ public class HttpClient {
 		}
 	}
 	
-	private Reader execute(HttpPost request, boolean expectResponse) throws Exception {
+	private BufferedReader execute(HttpPost request, boolean expectResponse) throws Exception {
 		String responseContent = "";
 		currentAttempt = 0;
 		for (currentAttempt = 0; currentAttempt <= maxRetriesInCaseOfErrors; currentAttempt++) {
@@ -73,6 +81,7 @@ public class HttpClient {
             	statusMessage = httpResponse.getStatusLine().getReasonPhrase();
             	if (expectResponse || (statusCode != 204 && statusCode != 205)) {
             		HttpEntity entity = httpResponse.getEntity();
+            		responseHeader = httpResponse.getAllHeaders();
             		Header encodingHeader = entity.getContentEncoding();
             		String encoding = (encodingHeader != null ? encodingHeader.getValue() : "UTF-8");
             		responseContentReader = new BufferedReader(new InputStreamReader(entity.getContent(), encoding));
@@ -93,26 +102,51 @@ public class HttpClient {
 		} // for
         return responseContentReader;
 	}
+	
+	public String getResponseHeaderValue(String headerName) {
+		if (responseHeader != null) {
+			return null;
+		}
+		for (Header h : responseHeader) {
+			if (h.getName().equalsIgnoreCase(headerName)) {
+				return h.getValue();
+			}
+		}
+		return null;
+	}
 
-	public Reader getResponseContentReader() {
+	public BufferedReader getResponseContentReader() {
 		if (responseContentReader == null) {
 			throw new IllegalStateException("response content reader is null. No query was exeutted before");
 		}
 		return responseContentReader;
 	}
-
-	public Reader post(String urlStr, JsonNode node, boolean expectResponse) throws Exception {
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("POST " + urlStr + " body: " + node.toString());
+	
+	public BufferedReader query(JsonNode requestNode, boolean useTestMode, int countTestRecords) throws Exception {
+		String path = "tableinput";
+		if (useTestMode) {
+			path = path + "?testcount=" + countTestRecords;
 		}
-        HttpPost request = new HttpPost(urlStr);
+		return post(path, requestNode, true);
+	}
+
+	public void ping(JsonNode destinationNode) throws Exception {
+		post("ping", destinationNode, false);
+	}
+	
+	private BufferedReader post(String path, JsonNode payload, boolean expectResponse) throws Exception {
+		String url = baseUrl + path;
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("POST " + url + " body: " + payload.toString());
+		}
+        HttpPost request = new HttpPost(url);
         request.getConfig();
-        if (node != null) {
-            request.setEntity(buildEntity(node));
-            request.addHeader("Connection", "Keep-Alive");
+        request.addHeader("Connection", "Keep-Alive");
+        request.addHeader("Keep-Alive", "timeout=5, max=0");
+        if (payload != null) {
+            request.setEntity(buildEntity(payload));
             request.addHeader("Accept", "application/json");
             request.addHeader("Content-Type", "application/json;charset=UTF-8");
-            request.addHeader("Keep-Alive", "timeout=5, max=0");
         }
         return execute(request, expectResponse);
 	}

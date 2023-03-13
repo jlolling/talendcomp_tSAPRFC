@@ -24,9 +24,14 @@ public class DestinationImpl implements Destination {
 	private ObjectNode destinationNode = null;
 	private final static ObjectMapper objectMapper = new ObjectMapper();
 	
-	public DestinationImpl(HttpClient httpClient, ConnectionProperties cp) {
+	public DestinationImpl(HttpClient httpClient, ConnectionProperties cp) throws Exception {
 		this.httpClient = httpClient;
 		destinationNode = setupDestinationNode(cp);
+		try {
+			this.httpClient.ping(destinationNode);
+		} catch (Exception e) {
+			throw new Exception("Connection check (ping) failed: " + e.getMessage(), e);
+		}
 	}
 	
 	private ObjectNode setupDestinationNode(ConnectionProperties cp) {

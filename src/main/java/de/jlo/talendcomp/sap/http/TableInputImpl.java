@@ -1,7 +1,10 @@
 package de.jlo.talendcomp.sap.http;
 
+import java.io.BufferedReader;
+import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -12,6 +15,22 @@ public class TableInputImpl implements TableInput {
 	private ObjectNode requestNode = null;
 	private HttpClient httpClient = null;
 	private final static ObjectMapper objectMapper = new ObjectMapper();
+	private BufferedReader resultReader = null;
+	private boolean useTestMode = false;
+	private int countTestRecords = 1000;
+	private List<String> currentRow = null;
+	private String currentRawLine = null;
+	private int currentIndex = -1;
+	private int totalRows = 0;
+
+	public boolean isUseTestMode() {
+		return useTestMode;
+	}
+
+	public void setUseTestMode(boolean useTestMode, int countTestRecords) {
+		this.useTestMode = useTestMode;
+		this.countTestRecords = countTestRecords;
+	}
 
 	public TableInputImpl(HttpClient httpClient, ObjectNode destNode) {
 		if (httpClient == null) {
@@ -76,44 +95,78 @@ public class TableInputImpl implements TableInput {
 
 	@Override
 	public void execute() throws Exception {
-		// TODO Auto-generated method stub
-		
+		resultReader = httpClient.query(requestNode, useTestMode, countTestRecords);
+		String totalRowStr = httpClient.getResponseHeaderValue("total-rows");
+		if (totalRowStr != null && totalRowStr.trim().isEmpty()) {
+			try {
+				totalRows = Integer.valueOf(totalRowStr.trim());
+			} catch (Exception e) {
+				throw new Exception("parse total-rows header to integer failed", e);
+			}
+		}
 	}
 
 	@Override
 	public boolean next() throws Exception {
-		// TODO Auto-generated method stub
-		return false;
+		if (resultReader == null) {
+			throw new IllegalStateException("execute is not performed or has got no results!");
+		}
+		String line = resultReader.readLine();
+		if (line != null) {
+			line = line.trim();
+			if (line.contains("[") && line.contains("]") == false) {
+				// first root element found, we skip this line
+				line = resultReader.readLine();
+			}
+			if (line.contains("]") && line.contains("[") == false) {
+				// we found the end
+				resultReader.close();
+				return false;
+			}
+			if (line.endsWith(",")) {
+				line = line.substring(line.length() - 1);
+				currentRawLine = line;
+				currentIndex++;
+			}
+			ArrayNode arrayNode = (ArrayNode) objectMapper.readTree(line);
+			currentRow = new ArrayList<>();
+			for (JsonNode node : arrayNode) {
+				currentRow.add(node.asText());
+			}
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	@Override
 	public List<String> getCurrentRow() {
-		// TODO Auto-generated method stub
-		return null;
+		return currentRow;
 	}
 
 	@Override
 	public String getFunctionDescription() {
-		// TODO Auto-generated method stub
-		return null;
+		return requestNode.toString();
 	}
 
 	@Override
 	public String getCurrentRawDataEscaped() {
-		// TODO Auto-generated method stub
-		return null;
+		return currentRawLine;
 	}
 
 	@Override
 	public int getTotalRowCount() {
-		// TODO Auto-generated method stub
-		return 0;
+		return totalRows;
 	}
 
 	@Override
 	public int getCurrentRowIndex() {
-		// TODO Auto-generated method stub
-		return 0;
+		return currentIndex;
+	}
+
+	@Override
+	public void prepare() throws Exception {
+		// will be implemented later
 	}
 
 }
