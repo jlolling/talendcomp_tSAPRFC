@@ -51,5 +51,6 @@
 	de.jlo.talendcomp.sap.Driver driver_<%=cid%> = de.jlo.talendcomp.sap.DriverManager.getInstance().getDriverSAPJCO();
 <%  } %>
 	de.jlo.talendcomp.sap.Destination dest_<%=cid%> = driver_<%=cid%>.createDestination(properties_<%=cid%>);
+	dest_<%=cid%>.ping();
 	globalMap.put("conn_<%=cid%>", dest_<%=cid%>);
 	

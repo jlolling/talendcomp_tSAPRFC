@@ -46,10 +46,10 @@ public class DestinationImpl implements Destination {
 			ApplicationServerProperties ap = (ApplicationServerProperties) cp;
 			destNode.put("destinationType", "application_server");
 			destNode.put("host", ap.getHost());
-			destNode.put("client", ap.getHost());
-			destNode.put("user", ap.getHost());
-			destNode.put("password", ap.getHost());
-			destNode.put("language", ap.getHost());
+			destNode.put("client", ap.getClient());
+			destNode.put("user", ap.getUser());
+			destNode.put("password", ap.getPassword());
+			destNode.put("language", ap.getLanguage());
 			destNode.put("systemNumber", ap.getSystemNumber());
 		} else if (cp instanceof MessageServerProperties) {
 			MessageServerProperties mp = (MessageServerProperties) cp;
