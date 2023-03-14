@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -28,6 +29,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class HttpClient {
 	
@@ -43,6 +46,7 @@ public class HttpClient {
 	private CloseableHttpResponse httpResponse = null;
 	private String baseUrl = null;
 	private Header[] responseHeader = null;
+	private final static ObjectMapper objectMapper = new ObjectMapper();
 	
 	public HttpClient(String baseUrl, String user, String password, int timeout, int socketTimeout) throws Exception {
 		if (baseUrl == null || baseUrl.trim().isEmpty()) {
@@ -78,8 +82,8 @@ public class HttpClient {
             	}
             	statusCode = httpResponse.getStatusLine().getStatusCode();
         		HttpEntity entity = httpResponse.getEntity();
-            	if (expectResponse || (statusCode != 204 && statusCode != 205)) {
-            		responseHeader = httpResponse.getAllHeaders();
+        		responseHeader = httpResponse.getAllHeaders();
+            	if (expectResponse && statusCode == 200) {
             		Header encodingHeader = entity.getContentEncoding();
             		String encoding = (encodingHeader != null ? encodingHeader.getValue() : "UTF-8");
             		responseContentReader = new BufferedReader(new InputStreamReader(entity.getContent(), encoding));
@@ -89,11 +93,15 @@ public class HttpClient {
             		String actualErrorMessage = rawErrorMessage;
             		Header contentType = httpResponse.getFirstHeader("Content-Type");
             		if (contentType != null) {
-            			if (contentType.getValue() != null && contentType.getValue().contains("test/html")) {
-            				actualErrorMessage = extractMessageFromHtml(rawErrorMessage);
+            			if (contentType.getValue() != null) {
+            				if (contentType.getValue().contains("html")) {
+            					actualErrorMessage = extractMessageFromHtml(rawErrorMessage);
+            				} else if (contentType.getValue().contains("json")) {
+            					actualErrorMessage = extractMessageFromJson(rawErrorMessage);
+            				}
             			}
             		}
-            		throw new Exception("Got status-code: " + statusCode + ", message: " + actualErrorMessage);
+            		throw new Exception("Code: " + statusCode + ", message: " + actualErrorMessage);
             	}
             	break;
             } catch (Throwable e) {
@@ -102,7 +110,7 @@ public class HttpClient {
                 	LOG.warn("POST request: " + request.getURI() + " failed (" + (currentAttempt + 1) + ". attempt, " + (maxRetriesInCaseOfErrors - currentAttempt) + " retries left). \n   Payload: " + EntityUtils.toString(request.getEntity()) + "\n   Waiting " + waitMillisAfterError + "ms and retry request.", e);
                 	Thread.sleep(waitMillisAfterError);
             	} else {
-                	throw new Exception("POST request: " + request.getURI() + " failed. No retry left, max: " + maxRetriesInCaseOfErrors + ".\n   Payload: " + EntityUtils.toString(request.getEntity()), e);
+                	throw new Exception(e.getMessage() + "\n   No retry left, max: " + maxRetriesInCaseOfErrors + ".\n   Payload: " + EntityUtils.toString(request.getEntity()), e);
             	}
             }
 		} // for
@@ -279,10 +287,26 @@ public class HttpClient {
 			p1 = p1 + start.length();
 			int p2 = htmlResponse.indexOf(stop, p1);
 			if (p2 > 0) {
-				return htmlResponse.substring(p1, p2);
+				String message = htmlResponse.substring(p1, p2);
+				System.out.println(message);
+				return StringEscapeUtils.escapeHtml4(message);
 			}
 		}
 		return htmlResponse;
+	}
+	
+	public static String extractMessageFromJson(String jsonMessage) {
+		try {
+			ObjectNode doc = (ObjectNode) objectMapper.readTree(jsonMessage);
+			JsonNode mn = doc.get("message");
+			if (mn != null) {
+				return StringEscapeUtils.unescapeXml(mn.asText());
+			} else {
+				return jsonMessage;
+			}
+		} catch (IOException e) {
+			return jsonMessage;
+		}
 	}
 
 }

@@ -29,6 +29,7 @@ public class DestinationImpl implements Destination {
 		destinationNode = setupDestinationNode(cp);
 	}
 	
+	@Override
 	public void ping() throws Exception {
 		try {
 			ObjectNode requestNode = objectMapper.createObjectNode();

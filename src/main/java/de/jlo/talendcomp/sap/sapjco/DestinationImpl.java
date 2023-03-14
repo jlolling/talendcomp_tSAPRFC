@@ -31,6 +31,7 @@ public class DestinationImpl implements Destination {
 		this.jcoDestination = jcoDestination;
 	}
 	
+	@Override
 	public void ping() throws Exception {
 		try {
 			this.jcoDestination.ping();
