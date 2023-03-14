@@ -65,7 +65,6 @@ public class HttpClient {
 	}
 	
 	private BufferedReader execute(HttpPost request, boolean expectResponse) throws Exception {
-		String responseContent = "";
 		currentAttempt = 0;
 		for (currentAttempt = 0; currentAttempt <= maxRetriesInCaseOfErrors; currentAttempt++) {
 			if (Thread.currentThread().isInterrupted()) {
@@ -78,16 +77,23 @@ public class HttpClient {
                 	httpResponse = closableHttpClient.execute(request);
             	}
             	statusCode = httpResponse.getStatusLine().getStatusCode();
-            	statusMessage = httpResponse.getStatusLine().getReasonPhrase();
+        		HttpEntity entity = httpResponse.getEntity();
             	if (expectResponse || (statusCode != 204 && statusCode != 205)) {
-            		HttpEntity entity = httpResponse.getEntity();
             		responseHeader = httpResponse.getAllHeaders();
             		Header encodingHeader = entity.getContentEncoding();
             		String encoding = (encodingHeader != null ? encodingHeader.getValue() : "UTF-8");
             		responseContentReader = new BufferedReader(new InputStreamReader(entity.getContent(), encoding));
             	}
             	if (statusCode > 300) {
-            		throw new Exception("Got status-code: " + statusCode + ", reason-phrase: " + statusMessage + ", response: " + responseContent);
+            		String rawErrorMessage = EntityUtils.toString(entity);
+            		String actualErrorMessage = rawErrorMessage;
+            		Header contentType = httpResponse.getFirstHeader("Content-Type");
+            		if (contentType != null) {
+            			if (contentType.getValue() != null && contentType.getValue().contains("test/html")) {
+            				actualErrorMessage = extractMessageFromHtml(rawErrorMessage);
+            			}
+            		}
+            		throw new Exception("Got status-code: " + statusCode + ", message: " + actualErrorMessage);
             	}
             	break;
             } catch (Throwable e) {
@@ -117,7 +123,7 @@ public class HttpClient {
 
 	public BufferedReader getResponseContentReader() {
 		if (responseContentReader == null) {
-			throw new IllegalStateException("response content reader is null. No query was exeutted before");
+			throw new IllegalStateException("response content reader is null. No query was executed before or query has been failed");
 		}
 		return responseContentReader;
 	}
@@ -263,6 +269,20 @@ public class HttpClient {
 
 	public void setClosableHttpClient(CloseableHttpClient closableHttpClient) {
 		this.closableHttpClient = closableHttpClient;
+	}
+	
+	public static String extractMessageFromHtml(String htmlResponse) {
+		String start = "<th>MESSAGE:</th><td>";
+		String stop = "</td></tr>";
+		int p1 = htmlResponse.indexOf(start);
+		if (p1 > 0) {
+			p1 = p1 + start.length();
+			int p2 = htmlResponse.indexOf(stop, p1);
+			if (p2 > 0) {
+				return htmlResponse.substring(p1, p2);
+			}
+		}
+		return htmlResponse;
 	}
 
 }
