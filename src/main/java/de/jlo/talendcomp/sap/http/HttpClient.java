@@ -110,7 +110,7 @@ public class HttpClient {
                 	LOG.warn("POST request: " + request.getURI() + " failed (" + (currentAttempt + 1) + ". attempt, " + (maxRetriesInCaseOfErrors - currentAttempt) + " retries left). \n   Payload: " + EntityUtils.toString(request.getEntity()) + "\n   Waiting " + waitMillisAfterError + "ms and retry request.", e);
                 	Thread.sleep(waitMillisAfterError);
             	} else {
-                	throw new Exception(e.getMessage() + "\n   No retry left, max: " + maxRetriesInCaseOfErrors + ".\n   Payload: " + EntityUtils.toString(request.getEntity()), e);
+                	throw new Exception(e.getMessage() + "\n   No retry left, max: " + maxRetriesInCaseOfErrors + ".\n   URL: " + request.getURI() + "\n   Payload: " + EntityUtils.toString(request.getEntity()), e);
             	}
             }
 		} // for
@@ -139,7 +139,7 @@ public class HttpClient {
 	public BufferedReader query(JsonNode requestNode, boolean useTestMode, int countTestRecords) throws Exception {
 		String path = "tableinput";
 		if (useTestMode) {
-			path = path + "?testcount=" + countTestRecords;
+			path = path + "?testrows=" + countTestRecords;
 		}
 		return post(path, requestNode, true);
 	}

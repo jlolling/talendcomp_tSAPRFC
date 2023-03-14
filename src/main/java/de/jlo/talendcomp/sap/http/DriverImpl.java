@@ -22,7 +22,6 @@ public class DriverImpl implements Driver {
 	@Override
 	public Destination createDestination(ConnectionProperties connProp) throws Exception {
 		DestinationImpl destination = new DestinationImpl(createHttpClient(), connProp);
-		destination.ping();
 		return destination;
 	}
 

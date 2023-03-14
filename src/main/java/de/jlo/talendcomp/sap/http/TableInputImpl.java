@@ -111,27 +111,41 @@ public class TableInputImpl implements TableInput {
 		if (resultReader == null) {
 			throw new IllegalStateException("execute is not performed or has got no results!");
 		}
-		String line = resultReader.readLine();
-		if (line != null) {
-			line = line.trim();
-			if (line.contains("[") && line.contains("]") == false) {
+		String rawLine = resultReader.readLine();
+		if (rawLine != null) {
+			String line = null;
+			rawLine = rawLine.trim();
+			if (rawLine.contains("[") && rawLine.contains("]") == false) {
 				// first root element found, we skip this line
-				line = resultReader.readLine();
+				rawLine = resultReader.readLine();
 			}
-			if (line.contains("]") && line.contains("[") == false) {
+			if (rawLine.contains("]") && rawLine.contains("[") == false) {
 				// we found the end
 				resultReader.close();
 				return false;
 			}
-			if (line.endsWith(",")) {
-				line = line.substring(line.length() - 1);
-				currentRawLine = line;
-				currentIndex++;
+			if (rawLine.endsWith(",")) {
+				line = rawLine.substring(0, rawLine.length() - 1);
+				currentRawLine = rawLine;
+			} else if (rawLine.startsWith("[") && rawLine.endsWith("]")) {
+				line = rawLine;
+				currentRawLine = rawLine;
 			}
-			ArrayNode arrayNode = (ArrayNode) objectMapper.readTree(line);
-			currentRow = new ArrayList<>();
-			for (JsonNode node : arrayNode) {
-				currentRow.add(node.asText());
+			if (line != null) {
+				if (line.length() == 0) {
+					throw new Exception("Received an invalid line: " + rawLine);
+				}
+				ArrayNode arrayNode = null;
+				try {
+					arrayNode = (ArrayNode) objectMapper.readTree(line);
+				} catch (Throwable e) {
+					throw new Exception("Parse result line: " + line + "\nraw-line: " + rawLine + "\nfailed: " + e.getMessage(), e);
+				}
+				currentRow = new ArrayList<>();
+				for (JsonNode node : arrayNode) {
+					currentRow.add(node.asText());
+				}
+				currentIndex++;
 			}
 			return true;
 		} else {

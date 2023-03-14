@@ -32,6 +32,4 @@ public interface TableInput {
 	
 	public int getCurrentRowIndex();
 	
-	
-	
 }

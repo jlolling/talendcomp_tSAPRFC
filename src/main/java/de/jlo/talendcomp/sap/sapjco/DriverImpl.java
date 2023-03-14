@@ -13,7 +13,6 @@ public class DriverImpl implements Driver {
 	@Override
 	public Destination createDestination(ConnectionProperties connProp) throws Exception {
 		DestinationImpl d = new DestinationImpl(createJCoDestination(connProp));
-		d.ping();
 		return d;
 	}
 
