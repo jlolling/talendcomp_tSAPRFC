@@ -82,14 +82,14 @@ public class TableInputImpl implements TableInput {
 	@Override
 	public void setMaxRows(Integer maxRows) {
 		if (maxRows != null && maxRows > 0) {
-			requestNode.put("offset", maxRows);
+			requestNode.put("limit", maxRows);
 		}
 	}
 
 	@Override
 	public void setRowsToSkip(Integer rowsToSkip) {
 		if (rowsToSkip != null && rowsToSkip > 0) {
-			requestNode.put("limit", rowsToSkip);
+			requestNode.put("offset", rowsToSkip);
 		}
 	}
 

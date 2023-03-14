@@ -16,7 +16,7 @@ public class DriverImpl implements Driver {
 		if (serviceBaseUrl == null) {
 			throw new IllegalStateException("serviceBaseUrl not set!");
 		}
-		return new HttpClient(serviceBaseUrl, httpUser, httpPassword, 100, 100);
+		return new HttpClient(serviceBaseUrl, httpUser, httpPassword, 10000, 10000);
 	}
 	
 	@Override
