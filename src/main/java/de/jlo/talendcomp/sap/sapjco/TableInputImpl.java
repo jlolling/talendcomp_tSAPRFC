@@ -92,7 +92,6 @@ public class TableInputImpl implements TableInput {
 			throw new Exception("Function RFC_READ_TABLE does not exist or cannot be reached");
 		}
 		function = functionTemplate_tSAPInput_1.getFunction();
-<<<<<<< HEAD:src/main/java/de/jlo/talendcomp/sap/impl/TableInputImpl.java
 		JCoParameterList importParameterList = function.getImportParameterList();
 		// add parameter for source table
 		if (tableName == null || tableName.trim().isEmpty()) {
@@ -101,8 +100,6 @@ public class TableInputImpl implements TableInput {
 		importParameterList.setValue("QUERY_TABLE", tableName);
 		// delimiter to later separate the result fields
 		importParameterList.setValue("DELIMITER", tableResultFieldDelimiter);
-=======
->>>>>>> use_proxy_server:src/main/java/de/jlo/talendcomp/sap/sapjco/TableInputImpl.java
 		JCoParameterList tableParameterList = function.getTableParameterList();
 		// add where condition
 		List<String> filterPartList = TextSplitter.split(filter, filterPartSeparator);
@@ -141,16 +138,6 @@ public class TableInputImpl implements TableInput {
 			throw new IllegalStateException("Function not prepared. Please call prepare() before.");
 		}
 		JCoParameterList importParameterList = function.getImportParameterList();
-<<<<<<< HEAD:src/main/java/de/jlo/talendcomp/sap/impl/TableInputImpl.java
-=======
-		// add parameter for source table
-		if (tableName == null || tableName.trim().isEmpty()) {
-			throw new Exception("Source table name cannot be null or empty!");
-		}
-		importParameterList.setValue("QUERY_TABLE", tableName);
-		// delimiter to later separate the result fields
-		importParameterList.setValue("DELIMITER", tableResultFieldDelimiter);
->>>>>>> use_proxy_server:src/main/java/de/jlo/talendcomp/sap/sapjco/TableInputImpl.java
 		// setup offset and limit
 		if (rowCount != null && rowCount > 0) {
 			importParameterList.setValue("ROWCOUNT", String.valueOf(rowCount));
