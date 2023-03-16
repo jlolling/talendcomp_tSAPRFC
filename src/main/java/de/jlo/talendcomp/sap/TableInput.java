@@ -12,14 +12,12 @@ public interface TableInput {
 	
 	public void setFilter(String whereCondition);
 	
-	public void setTableResultFieldDelimiter(String delimiter);
-	
 	public void setMaxRows(Integer maxRows);
 	
 	public void setRowsToSkip(Integer rowsToSkip);
 	
 	public void prepare() throws Exception;
-
+	
 	public void execute() throws Exception;
 	
 	public boolean next() throws Exception;
@@ -33,7 +31,5 @@ public interface TableInput {
 	public int getTotalRowCount();
 	
 	public int getCurrentRowIndex();
-	
-	
 	
 }

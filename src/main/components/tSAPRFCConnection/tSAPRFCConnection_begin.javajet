@@ -22,7 +22,9 @@
     String serverType = ElementParameterParser.getValue(node,"__SERVERTYPE__");
     String systemId = ElementParameterParser.getValue(node,"__SYSTEMID__");
     String groupName = ElementParameterParser.getValue(node,"__GROUPNAME__");
-    String jarFilePath = ElementParameterParser.getValue(node,"__SAPJCO3_JAR_FILE__");
+    String connMethod = ElementParameterParser.getValue(node,"__CONNECTION_METHOD__");
+    boolean useService = "PROXY_SERVICE".equals(connMethod);
+    String serviceBaseUrl = ElementParameterParser.getValue(node,"__PROXY_SERVICE_URL__");
 %>
     de.jlo.talendcomp.sap.ConnectionProperties properties_<%=cid%> = null;
 <%  if ("APPLICATIONSERVER".equalsIgnoreCase(serverType)) { %>
@@ -43,7 +45,12 @@
 			.setUser(<%=userid%>)
 			.setPassword(<%=password%>);
 <%  } %>
-	de.jlo.talendcomp.sap.Driver driver_<%=cid%> = de.jlo.talendcomp.sap.DriverManager.getInstance().getDriver();
+<%	if (useService) { %>
+	de.jlo.talendcomp.sap.Driver driver_<%=cid%> = de.jlo.talendcomp.sap.DriverManager.getInstance().getDriverService(<%=serviceBaseUrl%>, null, null);
+<%  } else { %>
+	de.jlo.talendcomp.sap.Driver driver_<%=cid%> = de.jlo.talendcomp.sap.DriverManager.getInstance().getDriverSAPJCO();
+<%  } %>
 	de.jlo.talendcomp.sap.Destination dest_<%=cid%> = driver_<%=cid%>.createDestination(properties_<%=cid%>);
+	dest_<%=cid%>.ping();
 	globalMap.put("conn_<%=cid%>", dest_<%=cid%>);
 	
