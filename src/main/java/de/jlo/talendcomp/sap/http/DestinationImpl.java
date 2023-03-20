@@ -53,7 +53,7 @@ public class DestinationImpl implements Destination {
 			destNode.put("systemNumber", ap.getSystemNumber());
 		} else if (cp instanceof MessageServerProperties) {
 			MessageServerProperties mp = (MessageServerProperties) cp;
-			destNode.put("destinationType", "application_server");
+			destNode.put("destinationType", "message_server");
 			destNode.put("host", mp.getHost());
 			destNode.put("client", mp.getClient());
 			destNode.put("user", mp.getUser());
