@@ -145,7 +145,7 @@ public class HttpClient {
 	}
 
 	public void ping(JsonNode destinationNode) throws Exception {
-		post("ping", destinationNode, false);
+		post("sap-ping", destinationNode, false);
 	}
 	
 	private BufferedReader post(String path, JsonNode payload, boolean expectResponse) throws Exception {

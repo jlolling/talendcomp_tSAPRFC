@@ -9,6 +9,7 @@ public class DriverImpl implements Driver {
 	private String serviceBaseUrl = null;
 	private String httpUser = null;
 	private String httpPassword = null;
+	private int readTimeout = 0;
 	
 	public DriverImpl() {}
 	
@@ -16,9 +17,19 @@ public class DriverImpl implements Driver {
 		if (serviceBaseUrl == null) {
 			throw new IllegalStateException("serviceBaseUrl not set!");
 		}
-		return new HttpClient(serviceBaseUrl, httpUser, httpPassword, 10000, 10000);
+		return new HttpClient(serviceBaseUrl, httpUser, httpPassword, 10000, readTimeout);
 	}
 	
+	public int getReadTimeout() {
+		return readTimeout;
+	}
+
+	public void setReadTimeout(Integer readTimeout) {
+		if (readTimeout != null && readTimeout > 0) {
+			this.readTimeout = readTimeout;
+		}
+	}
+
 	@Override
 	public Destination createDestination(ConnectionProperties connProp) throws Exception {
 		DestinationImpl destination = new DestinationImpl(createHttpClient(), connProp);

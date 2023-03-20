@@ -105,13 +105,21 @@ public class TableInputImpl implements TableInput {
 			}
 		}
 	}
+	
+	private String readNextLine() throws Exception {
+		String rawline = "executing";
+		while (rawline.startsWith("executing")) {
+			rawline = resultReader.readLine();
+		}
+		return rawline;
+	}
 
 	@Override
 	public boolean next() throws Exception {
 		if (resultReader == null) {
 			throw new IllegalStateException("execute is not performed or has got no results!");
 		}
-		String rawLine = resultReader.readLine();
+		String rawLine = readNextLine();
 		if (rawLine != null) {
 			String line = null;
 			rawLine = rawLine.trim();
@@ -149,6 +157,9 @@ public class TableInputImpl implements TableInput {
 			}
 			return true;
 		} else {
+			try {
+				resultReader.close();
+			} catch (Exception e) {}
 			return false;
 		}
 	}
