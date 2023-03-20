@@ -353,4 +353,9 @@ public class TableInputImpl implements TableInput {
 		return functionDescription;
 	}
 
+	@Override
+	public void setReadTimeout(Integer timeout) {
+		// not used here
+	}
+
 }

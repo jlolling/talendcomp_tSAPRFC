@@ -32,4 +32,6 @@ public interface TableInput {
 	
 	public int getCurrentRowIndex();
 	
+	public void setReadTimeout(Integer sec);
+	
 }

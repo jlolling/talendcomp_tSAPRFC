@@ -22,6 +22,14 @@ public class TableInputImpl implements TableInput {
 	private String currentRawLine = null;
 	private int currentIndex = -1;
 	private int totalRows = 0;
+	private int timeout = 10000;
+
+	@Override
+	public void setReadTimeout(Integer timeout) {
+		if (timeout != null) {
+			this.timeout = timeout;
+		}
+	}
 
 	public boolean isUseTestMode() {
 		return useTestMode;
@@ -95,7 +103,7 @@ public class TableInputImpl implements TableInput {
 
 	@Override
 	public void execute() throws Exception {
-		resultReader = httpClient.query(requestNode, useTestMode, countTestRecords);
+		resultReader = httpClient.query(requestNode, useTestMode, countTestRecords, timeout);
 		String totalRowStr = httpClient.getResponseHeaderValue("total-rows");
 		if (totalRowStr != null && totalRowStr.trim().isEmpty()) {
 			try {

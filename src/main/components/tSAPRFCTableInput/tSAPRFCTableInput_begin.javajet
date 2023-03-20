@@ -49,12 +49,17 @@
 		maxRowCount = "null";
 	}
 	boolean ignoreUnsupportedTypes = "true".equals(ElementParameterParser.getValue(node, "__IGNORE_UNSUPPORTED_DATATYPES__"));
+    String readTimeout = ElementParameterParser.getValue(node, "__READ_TIMEOUT__");
+	if (readTimeout == null || readTimeout.trim().isEmpty()) {
+		readTimeout = "null";
+	}
 %>
     de.jlo.talendcomp.sap.Destination dest_<%=cid%> = (de.jlo.talendcomp.sap.Destination) globalMap.get("conn_<%=connection%>");
     if (dest_<%=cid%> == null) {
     	throw new Exception("No Destination available from referenced component: <%=connection%>");
     }
 	de.jlo.talendcomp.sap.TableInput <%=cid%> = dest_<%=cid%>.createTableInput();
+	<%=cid%>.setReadTimeout(<%=readTimeout%>);
 	<%=cid%>.setTableName(<%=table%>);
 <%	for (int i = 0; i < listColumns.size(); i++) {
 		IMetadataColumn mc = listColumns.get(i); %>

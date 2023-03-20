@@ -25,7 +25,7 @@ public class DriverImpl implements Driver {
 	}
 
 	public void setReadTimeout(Integer readTimeout) {
-		if (readTimeout != null && readTimeout > 0) {
+		if (readTimeout != null) {
 			this.readTimeout = readTimeout;
 		}
 	}

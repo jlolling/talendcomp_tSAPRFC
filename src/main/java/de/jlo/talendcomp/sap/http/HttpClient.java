@@ -136,25 +136,29 @@ public class HttpClient {
 		return responseContentReader;
 	}
 	
-	public BufferedReader query(JsonNode requestNode, boolean useTestMode, int countTestRecords) throws Exception {
+	public BufferedReader query(JsonNode requestNode, boolean useTestMode, int countTestRecords, int timeout) throws Exception {
 		String path = "tableinput";
 		if (useTestMode) {
 			path = path + "?testrows=" + countTestRecords;
 		}
-		return post(path, requestNode, true);
+		return post(path, requestNode, true, timeout);
 	}
 
-	public void ping(JsonNode destinationNode) throws Exception {
-		post("sap-ping", destinationNode, false);
+	public void sapping(JsonNode destinationNode) throws Exception {
+		post("sap-ping", destinationNode, false, 5000);
 	}
 	
-	private BufferedReader post(String path, JsonNode payload, boolean expectResponse) throws Exception {
+	private BufferedReader post(String path, JsonNode payload, boolean expectResponse, int timeout) throws Exception {
 		String url = baseUrl + path;
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("POST " + url + " body: " + payload.toString());
 		}
         HttpPost request = new HttpPost(url);
-        request.getConfig();
+        RequestConfig config = request.getConfig();
+        if (config == null) {
+        	config = RequestConfig.custom().setSocketTimeout(timeout * 1000).build();
+        	request.setConfig(config);
+        }
         request.addHeader("Connection", "Keep-Alive");
         request.addHeader("Keep-Alive", "timeout=5, max=0");
         if (payload != null) {
