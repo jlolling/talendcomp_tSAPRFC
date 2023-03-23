@@ -12,7 +12,7 @@ Connect to the Proxy-SAP-Server
 This server hats the advantage the sapjco3.jar must only by installed for this service and the amount of jobs don't.
 The service is described and published here: https://github.com/jlolling/SAPRFCProxyServer
 
-As URL for the service http://your-host:9999
+As URL for the service http://your-server:9999
 
 These 2 ways are configured with the option Connection Type.
 
