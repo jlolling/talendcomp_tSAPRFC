@@ -118,6 +118,9 @@ public class TableInputImpl implements TableInput {
 		String rawline = "executing";
 		while (rawline != null && (rawline.trim().isEmpty() || rawline.startsWith("executing"))) {
 			rawline = resultReader.readLine();
+			if (rawline != null && rawline.startsWith("ERROR")) {
+				throw new Exception("Error received: " + rawline);
+			}
 		}
 		return rawline;
 	}
