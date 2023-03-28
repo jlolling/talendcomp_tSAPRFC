@@ -116,7 +116,7 @@ public class TableInputImpl implements TableInput {
 	
 	private String readNextLine() throws Exception {
 		String rawline = "executing";
-		while (rawline.startsWith("executing")) {
+		while (rawline != null && (rawline.trim().isEmpty() || rawline.startsWith("executing"))) {
 			rawline = resultReader.readLine();
 		}
 		return rawline;
@@ -130,7 +130,6 @@ public class TableInputImpl implements TableInput {
 		String rawLine = readNextLine();
 		if (rawLine != null) {
 			String line = null;
-			rawLine = rawLine.trim();
 			if (rawLine.contains("[") && rawLine.contains("]") == false) {
 				// first root element found, we skip this line
 				rawLine = resultReader.readLine();
@@ -162,8 +161,10 @@ public class TableInputImpl implements TableInput {
 					currentRow.add(node.asText());
 				}
 				currentIndex++;
+				return true;
+			} else {
+				return false;
 			}
-			return true;
 		} else {
 			try {
 				resultReader.close();
