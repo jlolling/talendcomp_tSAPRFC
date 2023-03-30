@@ -107,6 +107,16 @@
 							<goal>component</goal>
 						</goals>
 					</execution>
+					<execution>
+						<id>tSAPRFCClose</id>
+						<configuration>
+							<componentName>tSAPRFCClose</componentName>
+							<noJars>true</noJars>
+						</configuration>
+						<goals>
+							<goal>component</goal>
+						</goals>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>

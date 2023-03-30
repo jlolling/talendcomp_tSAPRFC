@@ -17,3 +17,5 @@ buildNumber.properties
 .classpath
 # Intellij 
 *.iml
+
+.DS_Store
