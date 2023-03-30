@@ -46,4 +46,8 @@ public class DestinationImpl implements Destination {
 		return ti;
 	}
 	
+	public void close() {
+		// nothing to do
+	}
+	
 }

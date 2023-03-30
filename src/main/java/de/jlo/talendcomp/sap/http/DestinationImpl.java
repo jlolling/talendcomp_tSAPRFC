@@ -72,5 +72,10 @@ public class DestinationImpl implements Destination {
 		TableInputImpl in = new TableInputImpl(httpClient, destinationNode);
 		return in;
 	}
+	
+	@Override
+	public void close() {
+		httpClient.closeClient();
+	}
 
 }

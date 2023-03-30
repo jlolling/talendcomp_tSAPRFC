@@ -1,0 +1,22 @@
+<%@ jet
+	imports="
+	java.util.ArrayList
+	java.util.HashMap
+	java.util.List
+	java.util.Map
+	
+	org.talend.core.model.process.ElementParameterParser
+	org.talend.core.model.process.INode
+	org.talend.designer.codegen.config.CodeGeneratorArgument
+	"
+%>
+<%
+	CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+	INode node = (INode)codeGenArgument.getArgument();
+	String cid = node.getUniqueName();
+    String connection = ElementParameterParser.getValue(node, "__CONNECTION__");
+%>
+    de.jlo.talendcomp.sap.Destination dest_<%=cid%> = (de.jlo.talendcomp.sap.Destination) globalMap.get("conn_<%=connection%>");
+    if (dest_<%=cid%> != null) {
+		dest_<%=cid%>.close();
+    }
