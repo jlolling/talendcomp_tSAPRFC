@@ -140,6 +140,7 @@ public class TableInputImpl implements TableInput {
 			if (rawLine.contains("]") && rawLine.contains("[") == false) {
 				// we found the end
 				resultReader.close();
+				httpClient.releaseCurrentConnections();
 				return false;
 			}
 			if (rawLine.endsWith(",")) {
@@ -203,7 +204,6 @@ public class TableInputImpl implements TableInput {
 
 	@Override
 	public void prepare() throws Exception {
-		// will be implemented later
 	}
 
 }

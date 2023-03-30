@@ -10,6 +10,7 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
@@ -44,9 +45,16 @@ public class HttpClient {
 	private HttpClientContext context = null;
 	private BufferedReader responseContentReader = null;
 	private CloseableHttpResponse httpResponse = null;
-	private String baseUrl = null;
 	private Header[] responseHeader = null;
 	private final static ObjectMapper objectMapper = new ObjectMapper();
+	private HttpRequest currentRequest = null;
+	private String baseUrl = null;
+	private String user;
+	private String password;
+	private int timeout = 0;
+	private int socketTimeout = 0;
+	private int countQueryRuns = 0;
+	private int maxQueriesBeforeReconnect = 2;
 	
 	public HttpClient(String baseUrl, String user, String password, int timeout, int socketTimeout) throws Exception {
 		if (baseUrl == null || baseUrl.trim().isEmpty()) {
@@ -56,7 +64,16 @@ public class HttpClient {
 			baseUrl = baseUrl + "/";
 		}
 		this.baseUrl = baseUrl;
-		closableHttpClient = createCloseableClient(baseUrl, user, password, timeout, socketTimeout);
+		this.user = user;
+		this.password = password;
+		this.timeout = timeout;
+		this.socketTimeout = socketTimeout;
+		createCloseableClient();
+	}
+	
+	public void reconnect() throws Exception {
+		closeClient();
+		createCloseableClient();
 	}
 	
 	private HttpEntity buildEntity(JsonNode node) throws UnsupportedEncodingException {
@@ -69,6 +86,7 @@ public class HttpClient {
 	}
 	
 	private BufferedReader execute(HttpPost request, boolean expectResponse) throws Exception {
+		currentRequest = request;
 		currentAttempt = 0;
 		for (currentAttempt = 0; currentAttempt <= maxRetriesInCaseOfErrors; currentAttempt++) {
 			if (Thread.currentThread().isInterrupted()) {
@@ -137,10 +155,15 @@ public class HttpClient {
 	}
 	
 	public BufferedReader query(JsonNode requestNode, boolean useTestMode, int countTestRecords, int timeout) throws Exception {
+		if (countQueryRuns == maxQueriesBeforeReconnect) {
+			reconnect();
+			countQueryRuns = 0;
+		}
 		String path = "tableinput";
 		if (useTestMode) {
 			path = path + "?testrows=" + countTestRecords;
 		}
+		countQueryRuns++;
 		return post(path, requestNode, true, timeout);
 	}
 
@@ -169,11 +192,11 @@ public class HttpClient {
         return execute(request, expectResponse);
 	}
 
-	private CloseableHttpClient createCloseableClient(String urlStr, String user, String password, int timeout, int socketTimeout) throws Exception {
+	private CloseableHttpClient createCloseableClient() throws Exception {
         CredentialsProvider credsProvider = new BasicCredentialsProvider();
         if (closableHttpClient == null) {
             if (user != null && user.trim().isEmpty() == false) {
-        		URL url = new URL(urlStr);
+        		URL url = new URL(baseUrl);
                 credsProvider.setCredentials(
                         AuthScope.ANY,
                         new UsernamePasswordCredentials(user, password));
@@ -248,7 +271,19 @@ public class HttpClient {
 		}
 	}
 
-	public void close() {
+	public void closeClient() {
+		releaseCurrentConnections();
+		if (closableHttpClient != null) {
+			try {
+				closableHttpClient.close();
+				closableHttpClient = null;
+			} catch (IOException e) {
+				// ignore
+			}
+		}
+	}
+	
+	public void releaseCurrentConnections() {
 		if (responseContentReader != null) {
 			try {
 				responseContentReader.close();
@@ -265,13 +300,12 @@ public class HttpClient {
 	    		// ignore
 	    	}
 		}
-		if (closableHttpClient != null) {
-			try {
-				closableHttpClient.close();
-				closableHttpClient = null;
-			} catch (IOException e) {
-				// ignore
-			}
+		if (currentRequest instanceof HttpPost) {
+	    	try {
+	    		((HttpPost) currentRequest).releaseConnection();
+	    	} catch (Exception ce) {
+	    		// ignore
+	    	}
 		}
 	}
 
@@ -311,6 +345,14 @@ public class HttpClient {
 		} catch (IOException e) {
 			return jsonMessage;
 		}
+	}
+
+	public int getMaxQueriesBeforeReconnect() {
+		return maxQueriesBeforeReconnect;
+	}
+
+	public void setMaxQueriesBeforeReconnect(int maxQueriesBeforeReconnect) {
+		this.maxQueriesBeforeReconnect = maxQueriesBeforeReconnect;
 	}
 
 }

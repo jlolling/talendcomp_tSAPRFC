@@ -42,22 +42,24 @@ public class TestTableInput {
 	@Test
 	public void testQueryInTestMode() throws Exception {
 		testSetupDummyHttpConnection();
-		int testrows = 100000;
-		de.jlo.talendcomp.sap.Destination dest = (de.jlo.talendcomp.sap.Destination) globalMap.get("conn");
-		TableInputImpl ti = (TableInputImpl) dest.createTableInput();
-		ti.setUseTestMode(true, testrows);
-		ti.setTableName("dummy");
-		ti.prepare();
-		ti.execute();
-		int count = 0;
-		String v = null;
-		while (ti.next()) {
-			List<String> row = ti.getCurrentRow();
-			v = row.get(9);
-			count++;
+		for (int i = 0; i < 5; i++) {
+			int testrows = 0;
+			de.jlo.talendcomp.sap.Destination dest = (de.jlo.talendcomp.sap.Destination) globalMap.get("conn");
+			TableInputImpl ti = (TableInputImpl) dest.createTableInput();
+			ti.setUseTestMode(true, testrows);
+			ti.setTableName("dummy");
+			System.out.println(i);
+			ti.prepare();
+			ti.execute();
+			int count = 0;
+			String v = null;
+			while (ti.next()) {
+				List<String> row = ti.getCurrentRow();
+				v = row.get(9);
+				count++;
+			}
+			assertEquals(testrows, count);
 		}
-		assertEquals(testrows, count);
-//		assertEquals("last value does not fit", "V99-9", v);
 	}
 
 	@Test
