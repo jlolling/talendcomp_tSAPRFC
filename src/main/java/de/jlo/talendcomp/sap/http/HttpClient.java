@@ -38,9 +38,9 @@ public class HttpClient {
 	private static final Logger LOG = LogManager.getLogger(HttpClient.class);
 	private int statusCode = 0;
 	private String statusMessage = null;
-	private int maxRetriesInCaseOfErrors = 0;
+	private int maxRetriesInCaseOfErrors = 3;
 	private int currentAttempt = 0;
-	private long waitMillisAfterError = 1000l;
+	private long waitMillisAfterError = 2000l;
 	private CloseableHttpClient closableHttpClient = null;
 	private HttpClientContext context = null;
 	private BufferedReader responseContentReader = null;
