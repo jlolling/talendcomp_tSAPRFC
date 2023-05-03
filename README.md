@@ -2,21 +2,20 @@
 Talend Component working with SAP RFC calls to the default function RFC_READ_TABLE
 
 ## tSAPRFCConnection
-This component established the connection.
+This component established the connection. There are to different ways to connect to SAP (configured with the setting Connection Type):
 
-Direct connetion with the shipped sapjco3.jar
+### Connect with the shipped sapjco3.jar driver (deprecated)
 It can connect directly to the SAP server. This requires the component (and therefore the job must carry the sapjco3.jar library.
 This library requires the installation of the native library and the path to this lib must be referenced with the environment library JNI_LIBRARY_PATH
 
-Connect to the Proxy-SAP-Server
+### Connect via the Proxy-SAP-Server
 This server hats the advantage the sapjco3.jar must only by installed for this service and the amount of jobs don't.
 The service is described and published here: https://github.com/jlolling/SAPRFCProxyServer
 
 As URL for the service http://your-server:9999
 
-These 2 ways are configured with the option Connection Type.
 
-A typical job design:
+### A typical job design (regardless of the connection type)
 ![Job here the connection components](https://github.com/jlolling/talendcomp_tSAPRFC/blob/master/doc/tSAPRFC_real_live_job_design.png)
 
 ## tSAPRFCTableInput
