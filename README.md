@@ -24,9 +24,10 @@ Runs the query.
 The component expects mandatory the name of the table.
 You can setup a filter.
 Filter extressions are actually limited by 72 chars. You can configure much longer expressions. 
-To allow the component to cut the expressions in 72 or less pieces you have to add seimcolon and the component will cut the expressions there.
+To allow the component to cut the expressions in 72 or less pieces you have to add semicolon and the component will cut the expressions here.
 
 ![Job here the input component](https://github.com/jlolling/talendcomp_tSAPRFC/blob/master/doc/tSAPRFCTableInput_real_live_job_design.png)
+Please note the semicolons in the filter expression
 
 ![Job here the input component schema](https://github.com/jlolling/talendcomp_tSAPRFC/blob/master/doc/tSAPRFCTableInput_schema.png)
 
