@@ -9,7 +9,7 @@ It can connect directly to the SAP server. This requires the component (and ther
 This library requires the installation of the native library and the path to this lib must be referenced with the environment library JNI_LIBRARY_PATH
 
 ### Connect via the Proxy-SAP-Server
-This server hats the advantage the sapjco3.jar must only by installed for this service and the amount of jobs don't.
+This server has the advantage the sapjco3.jar must only by installed (along with the native lib) within this service and not in the amount of jobs.
 The service is described and published here: https://github.com/jlolling/SAPRFCProxyServer
 
 As URL for the service http://your-server:9999
