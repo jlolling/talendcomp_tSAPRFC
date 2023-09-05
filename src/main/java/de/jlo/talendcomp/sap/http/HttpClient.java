@@ -182,8 +182,8 @@ public class HttpClient {
         	config = RequestConfig.custom().setSocketTimeout(timeout * 1000).build();
         	request.setConfig(config);
         }
-        request.addHeader("Connection", "Keep-Alive");
-        request.addHeader("Keep-Alive", "timeout=5, max=0");
+//        request.addHeader("Connection", "Keep-Alive");
+//        request.addHeader("Keep-Alive", "timeout=60, max=0");
         if (payload != null) {
             request.setEntity(buildEntity(payload));
             request.addHeader("Accept", "application/json");
@@ -201,7 +201,7 @@ public class HttpClient {
                         AuthScope.ANY,
                         new UsernamePasswordCredentials(user, password));
                 RequestConfig requestConfig = RequestConfig.custom()
-                        .setSocketTimeout(socketTimeout + 100)
+                        .setSocketTimeout(socketTimeout + 1000)
                         .setConnectTimeout(timeout)
                         .setConnectionRequestTimeout(timeout)
                         .setRedirectsEnabled(true)
@@ -222,7 +222,7 @@ public class HttpClient {
                 return client;
             } else {
                 RequestConfig requestConfig = RequestConfig.custom()
-                        .setSocketTimeout(socketTimeout + 100)
+                        .setSocketTimeout(socketTimeout + 1000)
                         .setConnectTimeout(timeout)
                         .setConnectionRequestTimeout(timeout)
                         .setRedirectsEnabled(true)
