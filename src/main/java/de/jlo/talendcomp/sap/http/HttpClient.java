@@ -2,6 +2,7 @@ package de.jlo.talendcomp.sap.http;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
@@ -55,6 +56,7 @@ public class HttpClient {
 	private int socketTimeout = 0;
 	private int countQueryRuns = 0;
 	private int maxQueriesBeforeReconnect = 2;
+	private InputStream contentInputStream = null;
 	
 	public HttpClient(String baseUrl, String user, String password, int timeout, int socketTimeout) throws Exception {
 		if (baseUrl == null || baseUrl.trim().isEmpty()) {
@@ -104,7 +106,8 @@ public class HttpClient {
             	if (expectResponse && statusCode == 200) {
             		Header encodingHeader = entity.getContentEncoding();
             		String encoding = (encodingHeader != null ? encodingHeader.getValue() : "UTF-8");
-            		responseContentReader = new BufferedReader(new InputStreamReader(entity.getContent(), encoding));
+            		contentInputStream = entity.getContent();
+            		responseContentReader = new BufferedReader(new InputStreamReader(contentInputStream, encoding));
             	}
             	if (statusCode > 300) {
             		String rawErrorMessage = EntityUtils.toString(entity);
@@ -353,6 +356,10 @@ public class HttpClient {
 
 	public void setMaxQueriesBeforeReconnect(int maxQueriesBeforeReconnect) {
 		this.maxQueriesBeforeReconnect = maxQueriesBeforeReconnect;
+	}
+
+	public InputStream getContentInputStream() {
+		return contentInputStream;
 	}
 
 }

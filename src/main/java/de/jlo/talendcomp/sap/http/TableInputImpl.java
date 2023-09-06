@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.http.MalformedChunkCodingException;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -117,7 +119,15 @@ public class TableInputImpl implements TableInput {
 	private String readNextLine() throws Exception {
 		String rawline = "executing";
 		while (rawline != null && (rawline.trim().isEmpty() || rawline.startsWith("executing"))) {
-			rawline = resultReader.readLine();
+			try {
+				rawline = resultReader.readLine();
+			} catch (MalformedChunkCodingException e) {
+				if (e.getMessage().contains("CRLF expected at end of chunk")) {
+					throw new Exception("No more data from stream available at the end of a chunk. Last read line: " + currentRawLine, e);
+				} else {
+					throw e;
+				}
+			}
 			if (rawline != null && rawline.startsWith("ERROR")) {
 				throw new Exception("Error received: " + rawline);
 			}
