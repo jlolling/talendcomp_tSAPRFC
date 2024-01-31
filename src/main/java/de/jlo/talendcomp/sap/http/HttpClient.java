@@ -171,7 +171,11 @@ public class HttpClient {
 	}
 
 	public void sapping(JsonNode destinationNode) throws Exception {
-		post("sap-ping", destinationNode, false, 5000);
+		BufferedReader resultReader = post("sap-ping", destinationNode, false, 5000);
+		releaseCurrentConnections();
+		if (resultReader != null) {
+			resultReader.close();
+		}
 	}
 	
 	private BufferedReader post(String path, JsonNode payload, boolean expectResponse, int timeout) throws Exception {
@@ -185,8 +189,8 @@ public class HttpClient {
         	config = RequestConfig.custom().setSocketTimeout(timeout * 1000).build();
         	request.setConfig(config);
         }
-//        request.addHeader("Connection", "Keep-Alive");
-//        request.addHeader("Keep-Alive", "timeout=60, max=0");
+        request.addHeader("Connection", "Keep-Alive");
+        request.addHeader("Keep-Alive", "timeout=60, max=0");
         if (payload != null) {
             request.setEntity(buildEntity(payload));
             request.addHeader("Accept", "application/json");
@@ -283,6 +287,18 @@ public class HttpClient {
 			} catch (IOException e) {
 				// ignore
 			}
+		}
+		if (contentInputStream != null) {
+			try {
+				contentInputStream.close();
+				contentInputStream = null;
+			} catch (Throwable t) {}
+		}
+		if (responseContentReader != null) {
+			try {
+				responseContentReader.close();
+				responseContentReader = null;
+			} catch (Throwable t) {}
 		}
 	}
 	

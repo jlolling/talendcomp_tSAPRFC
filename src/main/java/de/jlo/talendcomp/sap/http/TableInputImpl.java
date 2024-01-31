@@ -123,7 +123,7 @@ public class TableInputImpl implements TableInput {
 				rawline = resultReader.readLine();
 			} catch (MalformedChunkCodingException e) {
 				if (e.getMessage().contains("CRLF expected at end of chunk")) {
-					throw new Exception("No more data from stream available at the end of a chunk. Last read line: " + currentRawLine, e);
+					throw new Exception("No more data from stream available at the end of a chunk. Last read line index: " + currentIndex + " content: " + currentRawLine, e);
 				} else {
 					throw e;
 				}
@@ -149,8 +149,8 @@ public class TableInputImpl implements TableInput {
 			}
 			if (rawLine.contains("]") && rawLine.contains("[") == false) {
 				// we found the end
-				resultReader.close();
 				httpClient.releaseCurrentConnections();
+				resultReader.close();
 				return false;
 			}
 			if (rawLine.endsWith(",")) {
@@ -175,6 +175,7 @@ public class TableInputImpl implements TableInput {
 					currentRow.add(node.asText());
 				}
 				currentIndex++;
+				//Thread.sleep(2l);
 				return true;
 			} else {
 				return false;
