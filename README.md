@@ -31,6 +31,8 @@ Please note the semicolons in the filter expression
 
 ![Job here the input component schema](https://github.com/jlolling/talendcomp_tSAPRFC/blob/master/doc/tSAPRFCTableInput_schema.png)
 
-If the actual query have fields with / or spaces in such case set the actual database column as database column and rename it for the schema 
+If the actual query have fields with / or spaces in such case set the actual database column as database column and rename it for the schema
+
+Note: In case of there are exceptions caused by a missing CFLF. It turns out, a change of the port helps because e.g. the MySQL driver use this port as internal port for communication.
 
 
