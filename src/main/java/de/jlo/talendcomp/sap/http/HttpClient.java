@@ -204,7 +204,7 @@ public class HttpClient {
         CredentialsProvider credsProvider = new BasicCredentialsProvider();
         if (closableHttpClient == null) {
             if (user != null && user.trim().isEmpty() == false) {
-        		URL url = URL.of(new URI(baseUrl), null);
+        		URL url = new URI(baseUrl).toURL();
                 credsProvider.setCredentials(
                         AuthScope.ANY,
                         new UsernamePasswordCredentials(user, password));
