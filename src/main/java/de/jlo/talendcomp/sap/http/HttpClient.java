@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URL;
 
 import org.apache.commons.text.StringEscapeUtils;
@@ -203,7 +204,7 @@ public class HttpClient {
         CredentialsProvider credsProvider = new BasicCredentialsProvider();
         if (closableHttpClient == null) {
             if (user != null && user.trim().isEmpty() == false) {
-        		URL url = new URL(baseUrl);
+        		URL url = URL.of(new URI(baseUrl), null);
                 credsProvider.setCredentials(
                         AuthScope.ANY,
                         new UsernamePasswordCredentials(user, password));
