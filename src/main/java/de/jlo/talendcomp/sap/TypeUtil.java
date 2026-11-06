@@ -31,18 +31,19 @@ import org.apache.commons.lang3.time.FastDateFormat;
 
 public final class TypeUtil {
 	
-	private static final Map<String, DecimalFormat> numberformatMap = new HashMap<String, DecimalFormat>();
+	// DecimalFormat is not thread-safe and the convert methods change its settings, so every thread gets its own instances
+	private static final ThreadLocal<Map<String, DecimalFormat>> numberformatMap = ThreadLocal.withInitial(HashMap::new);
 	private static final String DEFAULT_DATE_PATTERN = "yyyy-MM-dd HH:mm:ss";
 	private static final String DEFAULT_LOCALE = "en_UK";
 	
 	public TypeUtil() {}
 	
 	public static DecimalFormat getNumberFormat(String localeStr) {
-		DecimalFormat nf = numberformatMap.get(localeStr);
+		DecimalFormat nf = numberformatMap.get().get(localeStr);
 		if (nf == null) {
 			Locale locale = new Locale(localeStr);
 			nf = (DecimalFormat) NumberFormat.getInstance(locale);
-			numberformatMap.put(localeStr, nf);
+			numberformatMap.get().put(localeStr, nf);
 		}
 		return nf;
 	}
