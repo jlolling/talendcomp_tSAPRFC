@@ -179,7 +179,7 @@ public class TableInputImpl implements TableInput {
 		}
 		currentRow = null; // reset currentRow
 		currentRowIndex++; // was initialized with -1
-		if (currentRowIndex == totalRowCount) {
+		if (currentRowIndex >= totalRowCount) {
 			return false;
 		} else {
 			currentRawData = resultTable.getString("WA");

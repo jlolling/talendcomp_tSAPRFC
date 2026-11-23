@@ -94,7 +94,7 @@ public final class TypeUtil {
 			} else if ("Long".equalsIgnoreCase(dataType)) {
 				return convertToLong(value);
 			} else if ("Short".equalsIgnoreCase(dataType)) {
-				return convertToLong(value);
+				return convertToShort(value);
 			} else if ("Timestamp".equalsIgnoreCase(dataType)) {
 				return convertToTimestamp(value, options);
 			} else {
@@ -189,22 +189,37 @@ public final class TypeUtil {
 		}
 	}
 
+		/**
+	 * Parses the complete value as number. Trailing or unknown characters are not accepted.
+	 */
+	private static BigDecimal parseStrictNumber(String value) throws Exception {
+		DecimalFormat decfrm = getNumberFormat(DEFAULT_LOCALE);
+		decfrm.setParseBigDecimal(true);
+		ParsePosition pp = new ParsePosition(0);
+		Number n = decfrm.parse(value, pp);
+		if (n instanceof BigDecimal == false || pp.getIndex() != value.length()) {
+			throw new Exception("Value: " + value + " cannot be parsed to a number");
+		}
+		return (BigDecimal) n;
+	}
+
 	public static Double convertToDouble(String value) throws Exception {
 		if (value == null || value.isEmpty()) {
 			return null;
 		}
-		DecimalFormat decfrm = getNumberFormat(DEFAULT_LOCALE);
-		decfrm.setParseBigDecimal(false);
-		return decfrm.parse(value).doubleValue();
+		return parseStrictNumber(value).doubleValue();
 	}
 
-	public static Integer convertToInteger(String value) throws Exception {
+		public static Integer convertToInteger(String value) throws Exception {
 		if (value == null || value.isEmpty()) {
 			return null;
 		}
-		DecimalFormat decfrm = getNumberFormat(DEFAULT_LOCALE);
-		decfrm.setParseBigDecimal(false);
-		return decfrm.parse(value).intValue();
+		try {
+			// fails for fractions like 1.5 and for values out of the int range
+			return parseStrictNumber(value).intValueExact();
+		} catch (ArithmeticException e) {
+			throw new Exception("Value: " + value + " is not a valid integer", e);
+		}
 	}
 	
 	public static Short convertToShort(String value) throws Exception {
@@ -243,16 +258,13 @@ public final class TypeUtil {
 		return Long.parseLong(value);
 	}
 
-	public static BigDecimal convertToBigDecimal(String value) throws Exception {
+		public static BigDecimal convertToBigDecimal(String value) throws Exception {
 		if (value == null || value.isEmpty()) {
 			return null;
 		}
 		try {
-			DecimalFormat decfrm = getNumberFormat(DEFAULT_LOCALE);
-			decfrm.setParseBigDecimal(true);
-			ParsePosition pp = new ParsePosition(0);
-			return (BigDecimal) decfrm.parse(value, pp);
-		} catch (RuntimeException e) {
+			return parseStrictNumber(value);
+		} catch (Exception e) {
 			throw new Exception("convertToBigDecimal:" + value + " failed:" + e.getMessage(), e);
 		}
 	}

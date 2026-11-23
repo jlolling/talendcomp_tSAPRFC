@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.Header;
@@ -21,6 +23,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
@@ -88,59 +91,93 @@ public class HttpClient {
 		}
 	}
 	
+	/**
+	 * Executes the request. Transport errors and server errors (5xx) are retried,
+	 * client errors (3xx/4xx) are not. The payload is never written to logs or
+	 * exception messages because it contains the SAP password.
+	 */
 	private BufferedReader execute(HttpPost request, boolean expectResponse) throws Exception {
 		currentRequest = request;
-		currentAttempt = 0;
+		responseContentReader = null;
 		for (currentAttempt = 0; currentAttempt <= maxRetriesInCaseOfErrors; currentAttempt++) {
 			if (Thread.currentThread().isInterrupted()) {
-				break;
+				throw new InterruptedException("Request interrupted before sending: " + request.getURI());
 			}
-            try {
-            	if (context != null) {
-                	httpResponse = closableHttpClient.execute(request, context);
-            	} else {
-                	httpResponse = closableHttpClient.execute(request);
-            	}
-            	statusCode = httpResponse.getStatusLine().getStatusCode();
-        		HttpEntity entity = httpResponse.getEntity();
-        		responseHeader = httpResponse.getAllHeaders();
-            	if (expectResponse && statusCode == 200) {
-            		Header encodingHeader = entity.getContentEncoding();
-            		String encoding = (encodingHeader != null ? encodingHeader.getValue() : "UTF-8");
-            		contentInputStream = entity.getContent();
-            		responseContentReader = new BufferedReader(new InputStreamReader(contentInputStream, encoding));
-            	}
-            	if (statusCode > 300) {
-            		String rawErrorMessage = EntityUtils.toString(entity);
-            		String actualErrorMessage = rawErrorMessage;
-            		Header contentType = httpResponse.getFirstHeader("Content-Type");
-            		if (contentType != null) {
-            			if (contentType.getValue() != null) {
-            				if (contentType.getValue().contains("html")) {
-            					actualErrorMessage = extractMessageFromHtml(rawErrorMessage);
-            				} else if (contentType.getValue().contains("json")) {
-            					actualErrorMessage = extractMessageFromJson(rawErrorMessage);
-            				}
-            			}
-            		}
-            		throw new Exception("Code: " + statusCode + ", message: " + actualErrorMessage);
-            	}
-            	break;
-            } catch (Throwable e) {
-            	if (currentAttempt < maxRetriesInCaseOfErrors) {
-                	// this can happen, we try it again
-                	LOG.warn("POST request: " + request.getURI() + " failed (" + (currentAttempt + 1) + ". attempt, " + (maxRetriesInCaseOfErrors - currentAttempt) + " retries left). \n   Payload: " + EntityUtils.toString(request.getEntity()) + "\n   Waiting " + waitMillisAfterError + "ms and retry request.", e);
-                	Thread.sleep(waitMillisAfterError);
-            	} else {
-                	throw new Exception(e.getMessage() + "\n   No retry left, max: " + maxRetriesInCaseOfErrors + ".\n   URL: " + request.getURI() + "\n   Payload: " + EntityUtils.toString(request.getEntity()), e);
-            	}
-            }
-		} // for
-        return responseContentReader;
+			HttpEntity entity = null;
+			try {
+				if (context != null) {
+					httpResponse = closableHttpClient.execute(request, context);
+				} else {
+					httpResponse = closableHttpClient.execute(request);
+				}
+				statusCode = httpResponse.getStatusLine().getStatusCode();
+				entity = httpResponse.getEntity();
+				responseHeader = httpResponse.getAllHeaders();
+			} catch (IOException | RuntimeException e) {
+				// transport failure: retry if attempts are left
+				if (currentAttempt < maxRetriesInCaseOfErrors) {
+					LOG.warn("POST request: " + request.getURI() + " failed (" + (currentAttempt + 1) + ". attempt, " + (maxRetriesInCaseOfErrors - currentAttempt) + " retries left). " + e.getMessage() + "\n   Waiting " + waitMillisAfterError + "ms and retry request.", e);
+					releaseCurrentConnections();
+					Thread.sleep(waitMillisAfterError);
+					continue;
+				}
+				throw new Exception(e.getMessage() + "\n   No retry left, max: " + maxRetriesInCaseOfErrors + ".\n   URL: " + request.getURI(), e);
+			}
+			if (statusCode >= 300) {
+				String rawErrorMessage = entity != null ? EntityUtils.toString(entity) : "";
+				String actualErrorMessage = rawErrorMessage;
+				Header contentType = httpResponse.getFirstHeader("Content-Type");
+				if (contentType != null && contentType.getValue() != null) {
+					if (contentType.getValue().contains("html")) {
+						actualErrorMessage = extractMessageFromHtml(rawErrorMessage);
+					} else if (contentType.getValue().contains("json")) {
+						actualErrorMessage = extractMessageFromJson(rawErrorMessage);
+					}
+				}
+				releaseCurrentConnections();
+				String message = "Code: " + statusCode + ", message: " + actualErrorMessage;
+				if (statusCode >= 500 && currentAttempt < maxRetriesInCaseOfErrors) {
+					LOG.warn("POST request: " + request.getURI() + " returned server error (" + (currentAttempt + 1) + ". attempt). " + message + "\n   Waiting " + waitMillisAfterError + "ms and retry request.");
+					Thread.sleep(waitMillisAfterError);
+					continue;
+				}
+				throw new Exception(message + "\n   URL: " + request.getURI());
+			}
+			if (expectResponse) {
+				if (entity == null) {
+					throw new Exception("Response without content for " + request.getURI());
+				}
+				// the charset is taken from the Content-Type header, UTF-8 is the default
+				Charset charset = StandardCharsets.UTF_8;
+				ContentType contentType = ContentType.getOrDefault(entity);
+				if (contentType.getCharset() != null) {
+					charset = contentType.getCharset();
+				}
+				contentInputStream = entity.getContent();
+				responseContentReader = new BufferedReader(new InputStreamReader(contentInputStream, charset));
+			}
+			return responseContentReader;
+		}
+		throw new Exception("Request failed without result: " + request.getURI());
+	}
+
+	/**
+	 * Builds a copy of the payload for logging with the SAP password masked
+	 */
+	static String redactedPayload(JsonNode payload) {
+		if (payload == null) {
+			return "";
+		}
+		JsonNode copy = payload.deepCopy();
+		JsonNode destination = copy.get("destination");
+		if (destination instanceof ObjectNode && destination.has("password")) {
+			((ObjectNode) destination).put("password", "***");
+		}
+		return copy.toString();
 	}
 	
 	public String getResponseHeaderValue(String headerName) {
-		if (responseHeader != null) {
+		if (responseHeader == null) {
 			return null;
 		}
 		for (Header h : responseHeader) {
@@ -182,7 +219,7 @@ public class HttpClient {
 	private BufferedReader post(String path, JsonNode payload, boolean expectResponse, int timeout) throws Exception {
 		String url = baseUrl + path;
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("POST " + url + " body: " + payload.toString());
+			LOG.debug("POST " + url + " body: " + redactedPayload(payload));
 		}
         HttpPost request = new HttpPost(url);
         RequestConfig config = request.getConfig();
