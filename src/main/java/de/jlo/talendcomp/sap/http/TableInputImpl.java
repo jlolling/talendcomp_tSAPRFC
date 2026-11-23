@@ -25,6 +25,7 @@ public class TableInputImpl implements TableInput {
 	private int currentIndex = -1;
 	private int totalRows = 0;
 	private int timeout = 10000;
+	private boolean endReached = false;
 
 	@Override
 	public void setReadTimeout(Integer timeout) {
@@ -105,9 +106,10 @@ public class TableInputImpl implements TableInput {
 
 	@Override
 	public void execute() throws Exception {
+		endReached = false;
 		resultReader = httpClient.query(requestNode, useTestMode, countTestRecords, timeout);
 		String totalRowStr = httpClient.getResponseHeaderValue("total-rows");
-		if (totalRowStr != null && totalRowStr.trim().isEmpty()) {
+		if (totalRowStr != null && totalRowStr.trim().isEmpty() == false) {
 			try {
 				totalRows = Integer.valueOf(totalRowStr.trim());
 			} catch (Exception e) {
@@ -140,52 +142,66 @@ public class TableInputImpl implements TableInput {
 		if (resultReader == null) {
 			throw new IllegalStateException("execute is not performed or has got no results!");
 		}
-		String rawLine = readNextLine();
-		if (rawLine != null) {
-			String line = null;
-			if (rawLine.contains("[") && rawLine.contains("]") == false) {
-				// first root element found, we skip this line
-				rawLine = resultReader.readLine();
-			}
-			if (rawLine.contains("]") && rawLine.contains("[") == false) {
-				// we found the end
-				httpClient.releaseCurrentConnections();
-				resultReader.close();
-				return false;
-			}
-			if (rawLine.endsWith(",")) {
-				line = rawLine.substring(0, rawLine.length() - 1);
-				currentRawLine = rawLine;
-			} else if (rawLine.startsWith("[") && rawLine.endsWith("]")) {
-				line = rawLine;
-				currentRawLine = rawLine;
-			}
-			if (line != null) {
-				if (line.length() == 0) {
-					throw new Exception("Received an invalid line: " + rawLine);
-				}
-				ArrayNode arrayNode = null;
-				try {
-					arrayNode = (ArrayNode) objectMapper.readTree(line);
-				} catch (Throwable e) {
-					throw new Exception("Parse result line: " + line + "\nraw-line: " + rawLine + "\nfailed: " + e.getMessage(), e);
-				}
-				currentRow = new ArrayList<>();
-				for (JsonNode node : arrayNode) {
-					currentRow.add(node.asText());
-				}
-				currentIndex++;
-				//Thread.sleep(2l);
-				return true;
-			} else {
-				return false;
-			}
-		} else {
-			try {
-				resultReader.close();
-			} catch (Exception e) {}
+		if (endReached) {
 			return false;
 		}
+		String rawLine = readNextLine();
+		if (rawLine == null) {
+			throw streamEndedEarly();
+		}
+		String line = null;
+		if (rawLine.contains("[") && rawLine.contains("]") == false) {
+			// first root element found, we skip this line
+			rawLine = resultReader.readLine();
+			if (rawLine == null) {
+				throw streamEndedEarly();
+			}
+		}
+		if (rawLine.contains("]") && rawLine.contains("[") == false) {
+			// we found the end marker of the result array: the whole result was received
+			endReached = true;
+			httpClient.releaseCurrentConnections();
+			resultReader.close();
+			return false;
+		}
+		if (rawLine.endsWith(",")) {
+			line = rawLine.substring(0, rawLine.length() - 1);
+			currentRawLine = rawLine;
+		} else if (rawLine.startsWith("[") && rawLine.endsWith("]")) {
+			line = rawLine;
+			currentRawLine = rawLine;
+		}
+		if (line == null) {
+			// an unexpected line must not be taken as end of the data silently
+			throw new Exception("Received an unexpected line in the result stream: <" + rawLine + "> after row index: " + currentIndex);
+		}
+		if (line.length() == 0) {
+			throw new Exception("Received an invalid line: " + rawLine);
+		}
+		ArrayNode arrayNode = null;
+		try {
+			arrayNode = (ArrayNode) objectMapper.readTree(line);
+		} catch (Throwable e) {
+			throw new Exception("Parse result line: " + line + "\nraw-line: " + rawLine + "\nfailed: " + e.getMessage(), e);
+		}
+		currentRow = new ArrayList<>();
+		for (JsonNode node : arrayNode) {
+			currentRow.add(node.isNull() ? "" : node.asText());
+		}
+		currentIndex++;
+		return true;
+	}
+
+	/**
+	 * The stream ended without the end marker of the result array. The data is incomplete.
+	 */
+	private Exception streamEndedEarly() {
+		try {
+			resultReader.close();
+		} catch (Exception e) {
+			// ignore, we report the real problem
+		}
+		return new Exception("The result stream ended before the end marker of the result array was received. Incomplete data! Last row index: " + currentIndex + " last raw line: " + currentRawLine);
 	}
 
 	@Override
